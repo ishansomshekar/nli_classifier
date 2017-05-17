@@ -116,3 +116,8 @@ nli_env/
 
 *.dat
 *.npz
+
+kerems*
+
+graphs/
+checkpoints/
