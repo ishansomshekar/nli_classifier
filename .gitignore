@@ -116,3 +116,6 @@ nli_env/
 
 *.dat
 *.npz
+
+checkpoints
+checkpoints/*
