@@ -104,3 +104,12 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+requirements.txt
+data/
+predictions/
+desktop.ini
+
+glove*
+
+nli_env/
