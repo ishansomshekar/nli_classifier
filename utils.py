@@ -11,7 +11,8 @@ import sys
 import numpy as np
 import os.path
 import tensorflow as tf
-import cPickle as pickle
+# import cPickle as pickle
+import pickle
 
 
 def sparse_tuple_from(sequences, dtype=np.int32):

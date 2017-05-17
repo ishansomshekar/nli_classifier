@@ -7,7 +7,8 @@ from scipy.signal import argrelextrema
 from build_embedding import EmbeddingWrapper
 import csv
 import gzip
-import cPickle as pickle
+# import cPickle as pickle
+import pickle
 
 #from pointer_network import PointerCell
 
@@ -16,6 +17,8 @@ from progbar import Progbar
 
 import tensorflow as tf
 from tensorflow.python.platform import gfile
+
+import config
 
 logger = logging.getLogger("hw3.q2")
 logger.setLevel(logging.DEBUG)
@@ -26,8 +29,8 @@ timeString  = time.strftime("%Y%m%d%H%M%S", t)
 train_name = "baseline_" + str(time.time())
 logs_path = os.getcwd() + '/tf_log/'
 train = False
-train_datapath = os.getcwd() + '/data/speech_transcriptions/train/tokenized/'
-label_data = os.getcwd() + '/data/labels/train/labels.train.csv'
+train_datapath = os.path.join(config.DATA_DIR, 'speech_transcriptions/train/tokenized/')
+label_data = os.path.join(config.DATA_DIR, 'labels/train/labels.train.csv')
 
 lang_dict = {
     'HIN' : 0,
@@ -60,7 +63,8 @@ class BaselinePredictor():
         self.labels = labels
         self.max_length = input_mat.shape[1]
         self.batch_size = 50
-        self.num_hidden = 5
+        self.num_hidden = 256
+        self.num_layers = 5
         self.num_classes = 11
         self.loss = 0
         self.accuracy = .0
@@ -86,14 +90,15 @@ class BaselinePredictor():
         return final_embeddings
 
     def add_prediction_op(self, embeddings):
-        cell = tf.contrib.rnn.LSTMCell(self.num_hidden)
+        cell = tf.contrib.rnn.GRUCell(self.num_hidden)
+        multi_cell = tf.contrib.rnn.MultiRNNCell([cell] * self.num_layers)
+        _, state = tf.nn.dynamic_rnn(multi_cell, embeddings, dtype=tf.float64)
+        print(tf.get_shape(state))
         W = tf.get_variable(name = "W", shape = (self.num_hidden, self.num_classes), initializer = tf.contrib.layers.xavier_initializer(), dtype = tf.float64)
         b = tf.get_variable(name = "b", shape = (self.num_classes), initializer = tf.constant_initializer(0), dtype=tf.float64)
-
         # x = self.inputs_placeholder
-        shape = tf.shape(embeddings)
-
-        _, state = tf.nn.dynamic_rnn(cell, embeddings, dtype=tf.float64)
+        # shape = tf.shape(embeddings)
+        
         # outputs = tf.reshape(outputs, [-1, self.num_hidden])
         logits = tf.matmul(state[1], W) + b
         self.preds = logits
@@ -157,6 +162,7 @@ class BaselinePredictor():
             loss, accuracy = self.train_on_batch(sess, batch[0], batch[1])
             prog.update(count + 1, [("train loss", loss), ("accuracy", accuracy)])
             count += 1
+        return accuracy
 
         # print("Evaluating on development data")
         # # exact_match, entity_scores = self.evaluate_epoch(sess)
@@ -169,7 +175,7 @@ class BaselinePredictor():
         epoch_scores = []
         for epoch in range(self.num_epochs):
             tf.get_variable_scope().reuse_variables()
-            print("Epoch %d out of %d" % (epoch + 1, self.num_epochs))
+            print("\nEpoch %d out of %d" % (epoch + 1, self.num_epochs))
             score = self.run_epoch(sess)
             if score > best_score:
                 best_score = score
@@ -210,23 +216,18 @@ def build_data(embedding_wrapper):
 
 
     arr = []
-    with open(label_data, 'rb') as csvfile:
+    with open(label_data, 'r') as csvfile:
         reader = csv.reader(csvfile)
         next(reader, None)
         for row in reader:
-            arr.append([1 if lang_dict[row[3]] == i else 0 for i in xrange(len(lang_dict))])
-    print arr
+            arr.append([1 if lang_dict[row[3]] == i else 0 for i in range(len(lang_dict))])
     arr = np.asarray(arr)
-    print "after"
-    print arr
-    with open('labels.dat', 'w') as v:
+    with open('labels.dat', 'wb') as v:
         pickle.dump(arr, v)
         v.close()    
 
-
-
     res, lengths = pad_sequences(dataset)
-    with open('padded_data.dat', 'w') as v:
+    with open('padded_data.dat', 'wb') as v:
         pickle.dump(res, v)
         v.close()
 
@@ -239,9 +240,14 @@ def main():
     embedding_wrapper.build_vocab()
     embedding_wrapper.process_glove()
     if not gfile.Exists(os.getcwd() + '/padded_data.dat'):
+        print('build data')
         build_data(embedding_wrapper)
-    input_mat = pickle.load(open('padded_data.dat', 'r'))
-    labels = pickle.load(open('labels.dat', 'r'))
+    try:
+        input_mat = pickle.load(open('padded_data.dat', 'rb'))
+        labels = pickle.load(open('labels.dat', 'rb'))
+    except EOFError:
+        print('No data')
+        return {}
     build_model(embedding_wrapper, input_mat, labels)
 
 
