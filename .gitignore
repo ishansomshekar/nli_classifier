@@ -104,3 +104,5 @@ requirements.txt
 data/
 predictions/
 desktop.ini
+
+glove*
