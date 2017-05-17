@@ -1,30 +1,27 @@
+#Python imports
 import os
 import numpy as np
-import heapq
-import logging
 import time
-from scipy.signal import argrelextrema
-from build_embedding import EmbeddingWrapper
 import csv
-import gzip
 import cPickle as pickle
+import logging
 
-#from pointer_network import PointerCell
-
-from utils import pad_sequences, make_batches
 from progbar import Progbar
 
+#tf imports
 import tensorflow as tf
 from tensorflow.python.platform import gfile
 
-logger = logging.getLogger("hw3.q2")
-logger.setLevel(logging.DEBUG)
-logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+#our imports
+from utils import pad_sequences, make_batches
+from build_embedding import EmbeddingWrapper
 
 t = time.localtime()
 timeString  = time.strftime("%Y%m%d%H%M%S", t)
 train_name = "baseline_" + str(time.time())
 logs_path = os.getcwd() + '/tf_log/'
+logger = logging.getLogger("baseline")
+logger.setLevel(logging.DEBUG)
 train = False
 train_datapath = os.getcwd() + '/data/speech_transcriptions/train/tokenized/'
 label_data = os.getcwd() + '/data/labels/train/labels.train.csv'
@@ -54,6 +51,7 @@ class BaselinePredictor():
         self.embedding_wrapper = embedding_wrapper
         self.num_epochs = 10
         self.lr = 0.005
+        self.l2r = 0.0001
         self.inputs_placeholder = None
         self.labels_placeholder = None
         self.input_mat = input_mat
@@ -82,43 +80,51 @@ class BaselinePredictor():
         data = np.load('trimmed_glove.6B.%dd.npz' % self.glove_dim)
         embeddings = tf.Variable(data['glove'])
         final_embeddings = tf.nn.embedding_lookup(embeddings, self.inputs_placeholder)
-        final_embeddings = tf.reshape(final_embeddings, (-1, self.max_length, self.glove_dim)) 
+        final_embeddings = tf.reshape(final_embeddings, (-1, self.max_length, self.glove_dim))
         return final_embeddings
 
     def add_prediction_op(self, embeddings):
         cell = tf.contrib.rnn.LSTMCell(self.num_hidden)
-        W = tf.get_variable(name = "W", shape = (self.num_hidden, self.num_classes), initializer = tf.contrib.layers.xavier_initializer(), dtype = tf.float64)
-        b = tf.get_variable(name = "b", shape = (self.num_classes), initializer = tf.constant_initializer(0), dtype=tf.float64)
-
-        # x = self.inputs_placeholder
-        shape = tf.shape(embeddings)
-
         _, state = tf.nn.dynamic_rnn(cell, embeddings, dtype=tf.float64)
-        # outputs = tf.reshape(outputs, [-1, self.num_hidden])
+
+        """
+        W = tf.get_variable(
+                name = "W",
+                shape = [self.num_hidden, self.num_classes],
+                initializer = tf.contrib.layers.xavier_initializer(),
+                dtype=tf.float64)
+        b = tf.get_variable(
+                name = "b",
+                shape = (self.num_classes),
+                initializer = tf.constant_initializer(0),
+                dtype=tf.float64)
         logits = tf.matmul(state[1], W) + b
+        """
+
+
+        logits = tf.contrib.layers.fully_connected(inputs=state[0],
+                num_outputs=self.num_classes,
+                weights_initializer = tf.contrib.layers.xavier_initializer(),
+                weights_regularizer = tf.contrib.layers.l2_regularizer(scale = self.l2r),
+                biases_initializer = tf.constant_initializer(0),
+                trainable = True)
+
         self.preds = logits
-        # print self.preds
-        # logits = tf.reshape(logits, [shape[0], shape[1], self.num_classes])
+        #self.logit_pred = tf.Print(logits, [logits], "Logits:", summarize=11)
 
     def add_loss_op(self):
-        # print self.labels_placeholder.get_shape()
         loss = tf.nn.softmax_cross_entropy_with_logits(logits=self.preds, labels=self.labels_placeholder)
         self.loss = tf.reduce_mean(loss)
-        # return self.loss
-    
+        #self.loss_pred = tf.Print(self.loss, [self.loss], "Loss:")
+
     def add_optimization(self):
         optimizer = tf.train.AdamOptimizer(learning_rate=self.lr)
         self.train_op = optimizer.minimize(self.loss)
-        # return self.train_op       
 
     def add_accuracy_op(self):
-        # number of max(logits) == labels / len(labels)
-
         discrete_preds = tf.argmax(self.preds, 1)
         discrete_labels = tf.argmax(self.labels_placeholder, 1)
-        # print discrete_preds
         self.accuracy = tf.reduce_mean(tf.cast(discrete_preds == discrete_labels, dtype=tf.float32))
-        # self.accuracy = tf.metrics.accuracy(self.labels_placeholder, discrete_preds)
 
 
     def initialize_model(self):
@@ -130,15 +136,14 @@ class BaselinePredictor():
         self.add_optimization()
         self.add_accuracy_op()
 
-        return self.preds, self.loss, self.train_op, self.add_accuracy_op  
+        return self.preds, self.loss, self.train_op, self.add_accuracy_op
 
-    # def evaluate_epoch():
-    #     # TODO  
 
     def train_on_batch(self, sess, inputs_batch, labels_batch):
 
         feed = self.create_feed_dict(inputs=inputs_batch, labels=labels_batch)
 
+        #loss, accuracy, logit_pred, loss_pred = sess.run([self.loss, self.accuracy, self.logit_pred, self.loss_pred], feed_dict=feed)
         loss, accuracy = sess.run([self.loss, self.accuracy], feed_dict=feed)
         _ = sess.run([self.train_op], feed_dict=feed)
         return loss, accuracy
@@ -148,22 +153,15 @@ class BaselinePredictor():
         prog = Progbar(target=1 + int(self.train_len / self.batch_size))
         count = 0
 
-        # TODO the loop below is a batch loop 
+        # TODO the loop below is a batch loop
         batches = make_batches(self.batch_size, self.input_mat, self.labels)
         for batch in batches:
-            # print batch[0].shape
-            # print batch[1].shape
             tf.get_variable_scope().reuse_variables()
             loss, accuracy = self.train_on_batch(sess, batch[0], batch[1])
             prog.update(count + 1, [("train loss", loss), ("accuracy", accuracy)])
             count += 1
 
-        # print("Evaluating on development data")
-        # # exact_match, entity_scores = self.evaluate_epoch(sess)
-        # print("Entity level end_exact_match/start_exact_match/P/R/F1: %.2f/%.2f/%.2f/%.2f", exact_match[0], exact_match[1], entity_scores[0], entity_scores[1], entity_scores[2])
 
-
-    
     def fit(self, sess, saver):
         best_score = 0.
         epoch_scores = []
@@ -191,7 +189,7 @@ def build_model(embedding_wrapper, input_mat, labels):
         saver = tf.train.Saver()
         with tf.Session() as session:
             session.run(init)
-            model.fit(session, saver)        
+            model.fit(session, saver)
 
 
 def return_files(path):
@@ -215,13 +213,10 @@ def build_data(embedding_wrapper):
         next(reader, None)
         for row in reader:
             arr.append([1 if lang_dict[row[3]] == i else 0 for i in xrange(len(lang_dict))])
-    print arr
     arr = np.asarray(arr)
-    print "after"
-    print arr
     with open('labels.dat', 'w') as v:
         pickle.dump(arr, v)
-        v.close()    
+        v.close()
 
 
 
