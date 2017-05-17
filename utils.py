@@ -74,7 +74,7 @@ def pad_sequences(sequences, maxlen=None, dtype=np.float32,
         if truncating == 'pre':
             trunc = s[-maxlen:]
         elif truncating == 'post':
-            trunc = s[:maxlen]
+            trunc = s[:maxlen + 1]
         else:
             raise ValueError('Truncating type "%s" not understood' % truncating)
 
