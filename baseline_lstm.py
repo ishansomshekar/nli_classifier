@@ -15,8 +15,8 @@ from tensorflow.python.platform import gfile
 
 from build_embedding import EmbeddingWrapper
 import config
-from utils import pad_sequences, make_batches
 from progbar import Progbar
+import utils
 
 logger = logging.getLogger("hw3.q2")
 logger.setLevel(logging.DEBUG)
@@ -57,14 +57,14 @@ class BaselinePredictor():
         self.input_mat = input_mat
         self.labels = labels
         self.max_length = input_mat.shape[1]
-        self.batch_size = 50
-        self.num_hidden = 256
-        self.num_layers = 3
+        self.batch_size = 64
+        self.num_hidden = 128
+        self.num_layers = 1
         self.num_classes = 11
         self.loss = 0
         self.accuracy = .0
         self.train_len = input_mat.shape[0]
-
+        self.global_step = tf.Variable(0, dtype=tf.int32, trainable=False, name='global_step')
 
     def add_placeholders(self):
         self.inputs_placeholder = tf.placeholder(tf.int32, shape=(None, self.max_length))
@@ -96,13 +96,19 @@ class BaselinePredictor():
     
     def add_optimization(self):
         optimizer = tf.train.AdamOptimizer(learning_rate=self.lr)
-        self.train_op = optimizer.minimize(self.loss)
+        self.train_op = optimizer.minimize(self.loss, global_step=self.global_step)
 
     def add_accuracy_op(self):
         discrete_preds = tf.argmax(self.preds, 1)
         discrete_labels = tf.argmax(self.labels_placeholder, 1)
         correct_preds = tf.equal(discrete_preds, discrete_labels)
         self.accuracy = tf.reduce_mean(tf.cast(correct_preds, tf.float32))
+
+    def add_summaries(self):
+        with tf.name_scope("summaries"):
+            tf.summary.scalar("loss", self.loss)
+            tf.summary.scalar("accuracy", self.accuracy)
+            self.summary_op = tf.summary.merge_all()
 
     def initialize_model(self):
         self.add_placeholders()
@@ -112,53 +118,43 @@ class BaselinePredictor():
         self.add_loss_op()
         self.add_optimization()
         self.add_accuracy_op()
+        self.add_summaries()
 
     def train_on_batch(self, sess, inputs_batch, labels_batch):
         feed = self.create_feed_dict(inputs=inputs_batch, labels=labels_batch)
-        loss, accuracy = sess.run([self.loss, self.accuracy], feed_dict=feed)
-        _ = sess.run([self.train_op], feed_dict=feed)
-        return loss, accuracy
+        _, loss, accuracy, summary = sess.run([self.train_op, self.loss, self.accuracy, self.summary_op], feed_dict=feed)
+        return loss, accuracy, summary
 
-    def run_epoch(self, sess):
+    def run_epoch(self, sess, saver, best_score, writer, last_step):
         prog = Progbar(target=1 + int(self.train_len / self.batch_size))
         count = 0
 
         # TODO the loop below is a batch loop 
-        batches = make_batches(self.batch_size, self.input_mat, self.labels)
-        for batch in batches:
+        batches = utils.make_batches(self.batch_size, self.input_mat, self.labels)
+        for index, batch in enumerate(batches):
             tf.get_variable_scope().reuse_variables()
-            loss, accuracy = self.train_on_batch(sess, batch[0], batch[1])
+            loss, accuracy, summary = self.train_on_batch(sess, batch[0], batch[1])
+            writer.add_summary(summary, global_step=index + last_step)
             prog.update(count + 1, [("train loss", loss), ("accuracy", accuracy)])
             count += 1
-        return accuracy
+            if accuracy > best_score:
+                best_score = accuracy
+                if saver:
+                    print("\nNew best score! Saving model in %s" % config.best_checkpoint)
+                    saver.save(sess, config.best_checkpoint + '/baseline_lstm', index + last_step)
+            if (index + 1) % config.log_frequency == 0:
+                saver.save(sess, config.continue_checkpoint + '/baseline_lstm', index + last_step)
+        return accuracy, best_score
     
-    def fit(self, sess, saver):
+    def fit(self, sess, saver, writer, last_step):
         best_score = 0.
         epoch_scores = []
         for epoch in range(self.num_epochs):
             tf.get_variable_scope().reuse_variables()
             print("\nEpoch %d out of %d" % (epoch + 1, self.num_epochs))
-            score = self.run_epoch(sess)
-            if score > best_score:
-                best_score = score
-                if saver:
-                    print("New best score! Saving model in %s" % self.model_output)
-                    saver.save(sess, self.model_output)
-            epoch_scores.append(score)
-
-
-
-def build_model(embedding_wrapper, input_mat, labels):
-    with tf.variable_scope('baseline_model'):
-        logger.info("Building model...",)
-        start = time.time()
-        model = BaselinePredictor(embedding_wrapper, input_mat, labels)
-        model.initialize_model()
-        tf.get_variable_scope().reuse_variables()
-        saver = tf.train.Saver()
-        with tf.Session() as session:
-            session.run(tf.global_variables_initializer())
-            model.fit(session, saver)        
+            accuracy, best_score = self.run_epoch(sess, saver, best_score, writer, last_step)
+            epoch_scores.append(best_score)
+        return epoch_scores 
 
 def return_files(path):
     return [path+f for f in os.listdir(path) if (not f.startswith('missing_files') and not f.startswith('.'))]
@@ -186,15 +182,37 @@ def build_data(embedding_wrapper):
         pickle.dump(arr, v)
         v.close()    
 
-    res, lengths = pad_sequences(dataset)
+    res, lengths = utils.pad_sequences(dataset)
     with open('padded_data.dat', 'wb') as v:
         pickle.dump(res, v)
         v.close()
 
+def build_model(embedding_wrapper, input_mat, labels):
+    with tf.variable_scope('baseline_model'):
+        logger.info("Building model...",)
+        model = BaselinePredictor(embedding_wrapper, input_mat, labels)
+        model.initialize_model()
+        tf.get_variable_scope().reuse_variables()
+        saver = tf.train.Saver()
+        with tf.Session() as session:
+            writer = tf.summary.FileWriter('./graphs/baseline_lstm', session.graph)
+            ckpt = tf.train.get_checkpoint_state(os.path.dirname(config.continue_checkpoint + '/checkpoint'))
+            if ckpt and ckpt.model_checkpoint_path:
+                saver.restore(session, ckpt.model_checkpoint_path)
+            session.run(tf.global_variables_initializer())
+            last_step = model.global_step.eval()
+            epoch_scores = model.fit(session, saver, writer, last_step)
+
+    print("Best score for each epoch:")
+    for epoch, score in enumerate(epoch_scores):
+        print(epoch, ':', score)
 
 def main():
     mydir = os.path.join(os.getcwd(), train_name)
     os.makedirs(mydir)
+    utils.make_dir('checkpoints')
+    utils.make_dir(config.best_checkpoint)
+    utils.make_dir(config.continue_checkpoint)
 
     embedding_wrapper = EmbeddingWrapper()
     embedding_wrapper.build_vocab()
