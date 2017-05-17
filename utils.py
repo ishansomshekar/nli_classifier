@@ -58,6 +58,7 @@ def pad_sequences(sequences, maxlen=None, dtype=np.float32,
     nb_samples = len(sequences)
     if maxlen is None:
         maxlen = np.max(lengths)
+    print(maxlen)
 
     # take the sample shape from the first non empty sequence
     # checking for consistency in the main loop below.
@@ -74,7 +75,7 @@ def pad_sequences(sequences, maxlen=None, dtype=np.float32,
         if truncating == 'pre':
             trunc = s[-maxlen:]
         elif truncating == 'post':
-            trunc = s[:maxlen + 1]
+            trunc = s[:maxlen]
         else:
             raise ValueError('Truncating type "%s" not understood' % truncating)
 

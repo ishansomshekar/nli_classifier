@@ -184,7 +184,7 @@ def return_files(path):
     return [path+f for f in os.listdir(path) if (not f.startswith('missing_files') and not f.startswith('.'))]
 
 
-def build_data(embedding_wrapper, train_datapath, label_datapath, data_outpath, label_outpath):
+def build_data(embedding_wrapper, train_datapath, label_datapath, data_outpath, label_outpath, maxlen=None):
     dataset = []
     for file in return_files(train_datapath):
         idxs = []
@@ -206,7 +206,7 @@ def build_data(embedding_wrapper, train_datapath, label_datapath, data_outpath, 
         pickle.dump(arr, v)
         v.close()    
 
-    res, lengths, maxlen = utils.pad_sequences(dataset)
+    res, lengths, maxlen = utils.pad_sequences(dataset, maxlen)
     with open(data_outpath, 'wb') as v:
         pickle.dump(res, v)
         v.close()
@@ -254,7 +254,7 @@ def main():
 
     if not gfile.Exists(os.getcwd() + '/dev_padded_data.dat'):
         print('build data')
-        build_data(embedding_wrapper, dev_datapath, dev_label_datapath, 'dev_padded_data.dat', 'dev_labels.dat')
+        build_data(embedding_wrapper, dev_datapath, dev_label_datapath, 'dev_padded_data.dat', 'dev_labels.dat', maxlen)
     try:
         dev_input_mat = pickle.load(open('dev_padded_data.dat', 'rb'))
         dev_labels = pickle.load(open('dev_labels.dat', 'rb'))
