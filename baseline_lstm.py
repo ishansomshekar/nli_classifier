@@ -28,7 +28,10 @@ train_name = "baseline_" + str(time.time())
 logs_path = os.getcwd() + '/tf_log/'
 train = False
 train_datapath = os.path.join(config.DATA_DIR, 'speech_transcriptions/train/tokenized/')
-label_data = os.path.join(config.DATA_DIR, 'labels/train/labels.train.csv')
+label_datapath = os.path.join(config.DATA_DIR, 'labels/train/labels.train.csv')
+
+dev_datapath = os.path.join(config.DATA_DIR, 'speech_transcriptions/dev/tokenized/')
+dev_label_datapath = os.path.join(config.DATA_DIR, 'labels/dev/labels.dev.csv')
 
 lang_dict = {
     'HIN' : 0,
@@ -46,7 +49,7 @@ lang_dict = {
 
 
 class BaselinePredictor():
-    def __init__(self, embedding_wrapper, input_mat, labels):
+    def __init__(self, embedding_wrapper, input_mat, labels, dev_input_mat, dev_labels):
 
         self.glove_dim = 50
         self.embedding_wrapper = embedding_wrapper
@@ -56,6 +59,8 @@ class BaselinePredictor():
         self.labels_placeholder = None
         self.input_mat = input_mat
         self.labels = labels
+        self.dev_input_mat = dev_input_mat
+        self.dev_labels = dev_labels
         self.max_length = input_mat.shape[1]
         self.batch_size = 64
         self.num_hidden = 128
@@ -139,28 +144,47 @@ class BaselinePredictor():
             count += 1
             if accuracy > best_score:
                 best_score = accuracy
-                if saver:
-                    print("\nNew best score! Saving model in %s" % config.best_checkpoint)
-                    saver.save(sess, config.best_checkpoint + '/baseline_lstm', index + last_step)
             if (index + 1) % config.log_frequency == 0:
                 saver.save(sess, config.continue_checkpoint + '/baseline_lstm', index + last_step)
         return accuracy, best_score
+
+    def eval_dev(self, sess, saver, best_score):
+        prog = Progbar(target=1 + int(self.train_len))
+        count = 0
+        final_accuracy = 0.0
+        batches = utils.make_batches(self.batch_size, self.dev_input_mat, self.dev_labels)
+        for batch in batches:
+            tf.get_variable_scope().reuse_variables()
+            feed = self.create_feed_dict(inputs=batch[0], labels=batch[1])
+            loss, accuracy = sess.run([self.loss, self.accuracy], feed_dict=feed)
+            final_accuracy += accuracy
+            prog.update(count + 1, [("dev loss", loss), ("dev accuracy", accuracy)])
+            count += 1
+
+        if final_accuracy > best_score:
+            best_score = final_accuracy
+            print("\nNew best score! Saving model in %s" % config.best_checkpoint)
+            saver.save(sess, config.best_checkpoint + '/baseline_lstm')
+        return final_accuracy, best_score
     
     def fit(self, sess, saver, writer, last_step):
         best_score = 0.
-        epoch_scores = []
+        epoch_dev_scores = []
+        epoch_train_scores = []
         for epoch in range(self.num_epochs):
             tf.get_variable_scope().reuse_variables()
             print("\nEpoch %d out of %d" % (epoch + 1, self.num_epochs))
-            accuracy, best_score = self.run_epoch(sess, saver, best_score, writer, last_step)
-            epoch_scores.append(best_score)
-        return epoch_scores 
+            accuracy, best_train_score = self.run_epoch(sess, saver, best_score, writer, last_step)
+            score, best_score = self.eval_dev(sess, saver, best_score)
+            epoch_dev_scores.append(score)
+            epoch_train_scores.append(best_train_score)
+        return epoch_train_scores, epoch_dev_scores 
 
 def return_files(path):
     return [path+f for f in os.listdir(path) if (not f.startswith('missing_files') and not f.startswith('.'))]
 
 
-def build_data(embedding_wrapper):
+def build_data(embedding_wrapper, train_datapath, label_datapath, data_outpath, label_outpath):
     dataset = []
     for file in return_files(train_datapath):
         idxs = []
@@ -172,25 +196,26 @@ def build_data(embedding_wrapper):
 
 
     arr = []
-    with open(label_data, 'r') as csvfile:
+    with open(label_datapath, 'r') as csvfile:
         reader = csv.reader(csvfile)
         next(reader, None)
         for row in reader:
             arr.append([1 if lang_dict[row[3]] == i else 0 for i in range(len(lang_dict))])
     arr = np.asarray(arr)
-    with open('labels.dat', 'wb') as v:
+    with open(label_outpath, 'wb') as v:
         pickle.dump(arr, v)
         v.close()    
 
-    res, lengths = utils.pad_sequences(dataset)
-    with open('padded_data.dat', 'wb') as v:
+    res, lengths, maxlen = utils.pad_sequences(dataset)
+    with open(data_outpath, 'wb') as v:
         pickle.dump(res, v)
         v.close()
+    return maxlen
 
-def build_model(embedding_wrapper, input_mat, labels):
+def build_model(embedding_wrapper, input_mat, labels, dev_input_mat, dev_labels):
     with tf.variable_scope('baseline_model'):
         logger.info("Building model...",)
-        model = BaselinePredictor(embedding_wrapper, input_mat, labels)
+        model = BaselinePredictor(embedding_wrapper, input_mat, labels, dev_input_mat, dev_labels)
         model.initialize_model()
         tf.get_variable_scope().reuse_variables()
         saver = tf.train.Saver()
@@ -201,11 +226,11 @@ def build_model(embedding_wrapper, input_mat, labels):
                 saver.restore(session, ckpt.model_checkpoint_path)
             session.run(tf.global_variables_initializer())
             last_step = model.global_step.eval()
-            epoch_scores = model.fit(session, saver, writer, last_step)
+            epoch_train_scores, epoch_dev_scores = model.fit(session, saver, writer, last_step)
 
     print("Best score for each epoch:")
-    for epoch, score in enumerate(epoch_scores):
-        print(epoch, ':', score)
+    for epoch, score in enumerate(epoch_train_scores):
+        print('Epoch', epoch, ' - Train score:', epoch_train_scores[epoch], ' - Dev score:', epoch_dev_scores[epoch])
 
 def main():
     mydir = os.path.join(os.getcwd(), train_name)
@@ -219,16 +244,25 @@ def main():
     embedding_wrapper.process_glove()
     if not gfile.Exists(os.getcwd() + '/padded_data.dat'):
         print('build data')
-        build_data(embedding_wrapper)
+        maxlen = build_data(embedding_wrapper, train_datapath, label_datapath, 'padded_data.dat', 'labels.dat')
     try:
         input_mat = pickle.load(open('padded_data.dat', 'rb'))
         labels = pickle.load(open('labels.dat', 'rb'))
     except EOFError:
         print('No data')
         return {}
-    build_model(embedding_wrapper, input_mat, labels)
+
+    if not gfile.Exists(os.getcwd() + '/dev_padded_data.dat'):
+        print('build data')
+        build_data(embedding_wrapper, dev_datapath, dev_label_datapath, 'dev_padded_data.dat', 'dev_labels.dat')
+    try:
+        dev_input_mat = pickle.load(open('dev_padded_data.dat', 'rb'))
+        dev_labels = pickle.load(open('dev_labels.dat', 'rb'))
+    except EOFError:
+        print('No data')
+        return {}
+    build_model(embedding_wrapper, input_mat, labels, dev_input_mat, dev_labels)
 
 
 if __name__ == "__main__":
     main()
-

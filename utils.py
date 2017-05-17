@@ -90,7 +90,7 @@ def pad_sequences(sequences, maxlen=None, dtype=np.float32,
             x[idx, -len(trunc):] = trunc
         else:
             raise ValueError('Padding type "%s" not understood' % padding)
-    return x, lengths
+    return x, lengths, maxlen
 
 
 def get_tidigits_to_index_mapping():
