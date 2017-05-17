@@ -25,9 +25,9 @@ from utils.embedding_wrapper import EmbeddingWrapper
 from utils.data_utils import *
 import model_config
 
-
 class BaselinePredictor():
-    def __init__(self, embedding_wrapper, input_mat, lens, labels):
+    def __init__(self, embedding_wrapper, train_data, dev_data):
+
         self.embedding_wrapper = embedding_wrapper
         self.logger = model_config.get_logger()
 
@@ -35,12 +35,13 @@ class BaselinePredictor():
         self.seq_lens_placeholder = None
         self.labels_placeholder = None
 
-        self.input_mat = input_mat
-        self.lens = lens
-        self.labels = labels
+        self.train_data = train_data
+        self.dev_data = dev_data
 
-        self.max_length = input_mat.shape[1]
-        self.train_len = input_mat.shape[0]
+        self.max_length = max(train_data['max_len'], dev_data['max_len'])
+
+        self.train_len = self.train_data['inputs'].shape[0]
+        self.dev_len = self.dev_data['inputs'].shape[0]
 
         self.num_classes = model_config.num_classes
 
@@ -56,6 +57,7 @@ class BaselinePredictor():
 
         self.loss = 0
         self.accuracy = .0
+
         self.global_step = tf.Variable(0, dtype=tf.int32, trainable=False, name='global_step')
 
     def add_placeholders(self):
@@ -124,7 +126,7 @@ class BaselinePredictor():
         prog = Progbar(target=1 + int(self.train_len / self.batch_size))
         count = 0
 
-        batches = make_batches(self.batch_size, self.input_mat, self.lens, self.labels)
+        batches = make_batches(self.batch_size, self.train_data)
         for index, batch in enumerate(batches):
             tf.get_variable_scope().reuse_variables()
             loss, accuracy, summary = self.train_on_batch(sess, batch[0], batch[1], batch[2])
@@ -133,27 +135,47 @@ class BaselinePredictor():
             count += 1
             if accuracy > best_score:
                 best_score = accuracy
-                if saver:
-                    print("\nNew best score! Saving model in %s" % model_config.best_checkpoint)
-                    saver.save(sess, model_config.best_checkpoint + '/baseline_lstm', index + last_step)
-            if (index + 1) % model_config.log_frequency == 0:
+            if (index + last_step + 1) % model_config.log_frequency == 0:
                 saver.save(sess, model_config.continue_checkpoint + '/baseline_lstm', index + last_step)
         return accuracy, best_score
 
+    def eval_dev(self, sess, saver, best_score):
+        prog = Progbar(target=int(self.dev_len))
+        count = 0
+        total_accuracy = 0.0
+        batches = make_batches(1, self.dev_data)
+        for batch in batches:
+            tf.get_variable_scope().reuse_variables()
+            feed = self.create_feed_dict(inputs=batch[0], lens=batch[1], labels=batch[2])
+            loss, accuracy = sess.run([self.loss, self.accuracy], feed_dict=feed)
+            prog.update(count + 1, [("dev loss", loss), ("dev accuracy", accuracy)])
+            total_accuracy += accuracy
+            count += 1
+        final_accuracy = total_accuracy / count
+        if final_accuracy > best_score:
+            best_score = final_accuracy
+            print("\nNew best score! Saving model in %s" % config.best_checkpoint)
+            saver.save(sess, config.best_checkpoint + '/baseline_lstm')
+        return final_accuracy, best_score
+
     def fit(self, sess, saver, writer, last_step):
-        best_score = 0.
-        epoch_scores = []
+        best_dev_score = 0.0
+        best_train_score = 0.0
+        epoch_dev_scores = []
+        epoch_train_scores = []
         for epoch in range(self.num_epochs):
             tf.get_variable_scope().reuse_variables()
             print("\nEpoch %d out of %d" % (epoch + 1, self.num_epochs))
-            accuracy, best_score = self.run_epoch(sess, saver, best_score, writer, last_step)
-            epoch_scores.append(best_score)
-        return epoch_scores
+            accuracy, best_train_score = self.run_epoch(sess, saver, best_train_score, writer, last_step)
+            score, best_dev_score = self.eval_dev(sess, saver, best_dev_score)
+            epoch_dev_scores.append(score)
+            epoch_train_scores.append(best_train_score)
+        return epoch_train_scores, epoch_dev_scores 
 
 
-def build_model(embedding_wrapper, input_mat, lens, labels):
+def build_model(embedding_wrapper, train_data, dev_data):
     with tf.variable_scope('baseline_model'):
-        model = BaselinePredictor(embedding_wrapper, input_mat, lens, labels)
+        model = BaselinePredictor(embedding_wrapper, train_data, dev_data)
         model.initialize_model()
         tf.get_variable_scope().reuse_variables()
         saver = tf.train.Saver()
@@ -164,11 +186,11 @@ def build_model(embedding_wrapper, input_mat, lens, labels):
                 saver.restore(session, ckpt.model_checkpoint_path)
             session.run(tf.global_variables_initializer())
             last_step = model.global_step.eval()
-            epoch_scores = model.fit(session, saver, writer, last_step)
+            epoch_train_scores, epoch_dev_scores = model.fit(session, saver, writer, last_step)
 
     print("Best score for each epoch:")
-    for epoch, score in enumerate(epoch_scores):
-        print(epoch, ':', score)
+    for epoch, score in enumerate(epoch_train_scores):
+        print('Epoch', epoch, ' - Train score:', epoch_train_scores[epoch], ' - Dev score:', epoch_dev_scores[epoch])
 
 def main():
     ensure_dir('checkpoints')
@@ -179,20 +201,17 @@ def main():
     embedding_wrapper.build_vocab()
     embedding_wrapper.process_glove()
 
-
-    if not gfile.Exists(model_config.padded_data_path):
+    if not gfile.Exists(model_config.train_paths['inputs_out']) or not gfile.Exists(model_config.dev_paths['inputs_out']):
         print('build data')
-        build_data(model_config.train_raw_path, model_config.labels_raw_path, model_config.processed_data_path, embedding_wrapper)
-    try:
-        input_mat = pickle.load(open(model_config.padded_data_path, 'rb'))
-        lens = pickle.load(open(model_config.seq_lens_data_path, 'rb'))
-        labels = pickle.load(open(model_config.labels_data_path, 'rb'))
-    except EOFError:
-        print('No data')
-        return {}
-    build_model(embedding_wrapper, input_mat, lens, labels)
+        build_data_partition(model_config.train_paths, embedding_wrapper)
+        build_data_partition(model_config.dev_paths, embedding_wrapper)
+
+    train_data = load_data(model_config.train_paths)
+    dev_data = load_data(model_config.dev_paths)
+
+    build_model(embedding_wrapper, train_data, dev_data)
+
 
 
 if __name__ == "__main__":
     main()
-

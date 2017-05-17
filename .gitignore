@@ -1,10 +1,10 @@
-data/*
-predictions/*
-
 requirements.txt
+desktop.ini
+
 data/
 predictions/
-desktop.ini
+graphs/
+checkpoints/
 
 glove*
 
@@ -15,8 +15,6 @@ nli_env/
 
 kerems*
 
-graphs/
-checkpoints/
 
 *.sw*
 

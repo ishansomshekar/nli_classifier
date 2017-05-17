@@ -6,16 +6,27 @@ module_home = os.environ['NLI_PATH']
 best_checkpoint = 'checkpoints/best'
 continue_checkpoint = 'checkpoints/run1'
 
-train_raw_path = os.path.join(module_home, 'data/speech_transcriptions/train/tokenized/')
-labels_raw_path = os.path.join(module_home, 'data/labels/train/labels.train.csv')
-
 logs_path = os.path.join('./tf_log')
 
 processed_data_path = os.path.join(module_home, 'data/processed/')
 
-padded_data_path = os.path.join(processed_data_path, 'padded_data.dat')
-seq_lens_data_path = os.path.join(processed_data_path, 'lens.dat')
-labels_data_path = os.path.join(processed_data_path, 'labels.dat')
+train_paths = {
+        'inputs_in': os.path.join(module_home, 'data/speech_transcriptions/train/tokenized/'),
+        'labels_in': os.path.join(module_home, 'data/labels/train/labels.train.csv'),
+        'inputs_out': os.path.join(processed_data_path, 'train_padded_inputs.dat'),
+        'seq_lens_out': os.path.join(processed_data_path, 'train_seq_lens.dat'),
+        'labels_out': os.path.join(processed_data_path, 'train_labels.dat'),
+        'max_len_out': os.path.join(processed_data_path, 'train_max_len.dat')
+        }
+
+dev_paths = {
+        'inputs_in': os.path.join(module_home, 'data/speech_transcriptions/dev/tokenized/'),
+        'labels_in': os.path.join(module_home, 'data/labels/dev/labels.dev.csv'),
+        'inputs_out': os.path.join(processed_data_path, 'dev_added_inputs.dat'),
+        'seq_lens_out': os.path.join(processed_data_path, 'dev_seq_lens.dat'),
+        'labels_out': os.path.join(processed_data_path, 'dev_labels.dat'),
+        'max_len_out': os.path.join(processed_data_path, 'dev_max_len.dat')
+        }
 
 num_classes = 11
 log_frequency = 100

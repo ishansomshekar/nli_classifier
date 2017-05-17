@@ -6,6 +6,7 @@ import os
 import pickle
 import errno
 import sys
+import csv
 
 import numpy as np
 from six.moves.urllib.request import urlretrieve
@@ -84,52 +85,56 @@ def pad_sequences(sequences, maxlen=None, dtype=np.float32,
             x[idx, -len(trunc):] = trunc
         else:
             raise ValueError('Padding type "%s" not understood' % padding)
-    return x, lengths
+    return x, lengths, maxlen
 
-def make_batches(batch_size, input_mat, lens, labels):
+def make_batches(batch_size, data):
     batches = []
-    for i in range(0, input_mat.shape[0], batch_size):
-        batches.append((input_mat[i:i + batch_size], lens[i:i + batch_size], labels[i:i + batch_size]))
+    for i in range(0, data['inputs'].shape[0], batch_size):
+        batches.append((data['inputs'][i:i + batch_size], data['seq_lens'][i:i + batch_size], data['labels'][i:i + batch_size]))
 
     return batches
 
 def return_files(path):
     return [path+f for f in os.listdir(path) if (not f.startswith('missing_files') and not f.startswith('.'))]
 
-def build_data(train_path, labels_path, processed_data_path, embedding_wrapper):
+def build_data_partition(paths, embedding_wrapper):
+    inputs_in = paths['inputs_in']
+    labels_in = paths['labels_in']
+    inputs_out = paths['inputs_out']
+    seq_lens_out = paths['seq_lens_out']
+    labels_out = paths['labels_out']
+    max_len_out = paths['max_len_out']
     dataset = []
-    seq_lens = []
-    for file in return_files(train_path):
+    for file in return_files(inputs_in):
         idxs = []
         with open(file, 'r') as f:
             text = f.read()
             text = text.split()
             idxs = [embedding_wrapper.get_value(word) for word in text]
-            seq_lens.append(len(text))
         dataset.append(idxs)
     arr = []
 
-    with open(labels_path, 'r') as csvfile:
+    with open(labels_in, 'r') as csvfile:
         reader = csv.reader(csvfile)
         next(reader, None)
         for row in reader:
             arr.append([1 if lang_dict[row[3]] == i else 0 for i in range(len(lang_dict))])
 
     arr = np.asarray(arr)
-    res, lengths = pad_sequences(dataset)
+    res, seq_lens, maxlen = pad_sequences(dataset)
 
-    padded_path = os.path.join(module_home, processed_data_path, 'padded_data.dat')
-    lens_path = os.path.join(module_home, processed_data_path, 'seq_lens.dat')
-    labels_path = os.path.join(module_home, processed_data_path, 'labels.dat')
-
-    with open(padded_path, 'wb') as v:
+    with open(inputs_out, 'wb') as v:
         pickle.dump(res, v)
 
-    with open(lens_path, 'w') as v:
+    with open(seq_lens_out, 'w') as v:
         pickle.dump(seq_lens, v)
 
-    with open(labels_path, 'wb') as v:
+    with open(labels_out, 'wb') as v:
         pickle.dump(arr, v)
+
+    with open(max_len_out, 'wb') as v:
+        pickle.dump(maxlen, v)
+
 
 def load_glove_data(processed_data_path, glove_dim):
     path = os.path.join(processed_data_path, 'trimmed_glove.6B.%dd.npz' % glove_dim)
@@ -141,3 +146,11 @@ def ensure_dir(path):
     except OSError as ex:
         if ex.errno != errno.EEXIST:
             raise
+
+def load_data(paths):
+    data = {}
+    data['inputs'] = pickle.load(open(paths['inputs_out'], 'rb'))
+    data['seq_lens'] = pickle.load(open(paths['seq_lens_out'], 'rb'))
+    data['labels'] = pickle.load(open(paths['labels_out'], 'rb'))
+    data['max_len'] = pickle.load(open(paths['max_len_out'], 'rb'))
+    return data

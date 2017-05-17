@@ -29,7 +29,7 @@ class EmbeddingWrapper(object):
         self.glove_dir = "FILL GLOVE DIR HERE"
         self.glove_dim = 50
         self.num_tokens = 0
-        self.unk = "<UNK>"
+        self.unk = "UNK"
         self.pad = "<PAD>"
         self.data_path = pjoin(module_home, 'data/speech_transcriptions/train/tokenized/')
         self.vocab_path = pjoin(module_home, 'data/processed/vocab.dat')
