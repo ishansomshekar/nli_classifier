@@ -113,3 +113,6 @@ desktop.ini
 glove*
 
 nli_env/
+
+*.dat
+*.npz
