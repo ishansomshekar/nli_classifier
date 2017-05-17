@@ -3,8 +3,8 @@ from __future__ import division
 from __future__ import print_function
 
 import os
-import pdb
 import pickle
+import errno
 import sys
 
 import numpy as np
@@ -12,25 +12,19 @@ from six.moves.urllib.request import urlretrieve
 from six.moves import xrange as range
 import tensorflow as tf
 
-def sparse_tuple_from(sequences, dtype=np.int32):
-    """Create a sparse representention of x.
-    Args:
-        sequences: a list of lists of type dtype where each element is a sequence
-    Returns:
-        A tuple with (indices, values, shape)
-    """
-    indices = []
-    values = []
-
-    for n, seq in enumerate(sequences):
-        indices.extend(zip([n]*len(seq), range(len(seq))))
-        values.extend(seq)
-
-    indices = np.asarray(indices, dtype=np.int64)
-    values = np.asarray(values, dtype=dtype)
-    shape = np.asarray([len(sequences), np.asarray(indices).max(0)[1]+1], dtype=np.int64)
-
-    return indices, values, shape
+lang_dict = {
+    'HIN' : 0,
+    'ARA' : 1,
+    'JPN' : 2,
+    'SPA' : 3,
+    'TUR' : 4,
+    'GER' : 5,
+    'TEL' : 6,
+    'KOR' : 7,
+    'ITA' : 8,
+    'CHI' : 9,
+    'FRE' : 10
+}
 
 def pad_sequences(sequences, maxlen=None, dtype=np.float32,
                   padding='post', truncating='post', value=0.):
@@ -92,40 +86,58 @@ def pad_sequences(sequences, maxlen=None, dtype=np.float32,
             raise ValueError('Padding type "%s" not understood' % padding)
     return x, lengths
 
-
-def get_tidigits_to_index_mapping():
-	return {"z": 0, "o": 10, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "_": 11}
-
-def compare_predicted_to_true(preds, trues_tup):
-    inv_index_mapping = {v: k for k, v in get_tidigits_to_index_mapping().items()}        
-
-    preds = tf.sparse_tensor_to_dense(preds, default_value=-1).eval()
-    trues = tf.sparse_tensor_to_dense(tf.SparseTensor(indices=trues_tup[0], values=trues_tup[1], dense_shape=trues_tup[2]), default_value=-1).eval()
-
-    for true, pred in zip(trues, preds):
-        predicted_label = "".join([inv_index_mapping[ch] for ch in pred if ch != -1])
-        true_label = "".join([inv_index_mapping[ch] for ch in true if ch != -1])
-
-        print("Predicted: {}\n   Actual: {}\n".format(predicted_label, true_label))
-        
-def load_dataset(dataset_path):
-	with open(dataset_path, 'rb') as f:
-		dataset = pickle.load(f)
-	return dataset
-
-def make_batches(batch_size, input_mat, labels):
+def make_batches(batch_size, input_mat, lens, labels):
     batches = []
     for i in range(0, input_mat.shape[0], batch_size):
-        batches.append((input_mat[i:i + batch_size], labels[i:i + batch_size]))
+        batches.append((input_mat[i:i + batch_size], lens[i:i + batch_size], labels[i:i + batch_size]))
 
     return batches
 
+def return_files(path):
+    return [path+f for f in os.listdir(path) if (not f.startswith('missing_files') and not f.startswith('.'))]
 
-def make_dir(path):
-    '''
-    Syntactic sugar for creating a dir
-    '''
+def build_data(train_path, labels_path, processed_data_path, embedding_wrapper):
+    dataset = []
+    seq_lens = []
+    for file in return_files(train_path):
+        idxs = []
+        with open(file, 'r') as f:
+            text = f.read()
+            text = text.split()
+            idxs = [embedding_wrapper.get_value(word) for word in text]
+            seq_lens.append(len(text))
+        dataset.append(idxs)
+    arr = []
+
+    with open(labels_path, 'r') as csvfile:
+        reader = csv.reader(csvfile)
+        next(reader, None)
+        for row in reader:
+            arr.append([1 if lang_dict[row[3]] == i else 0 for i in range(len(lang_dict))])
+
+    arr = np.asarray(arr)
+    res, lengths = pad_sequences(dataset)
+
+    padded_path = os.path.join(module_home, processed_data_path, 'padded_data.dat')
+    lens_path = os.path.join(module_home, processed_data_path, 'seq_lens.dat')
+    labels_path = os.path.join(module_home, processed_data_path, 'labels.dat')
+
+    with open(padded_path, 'wb') as v:
+        pickle.dump(res, v)
+
+    with open(lens_path, 'w') as v:
+        pickle.dump(seq_lens, v)
+
+    with open(labels_path, 'wb') as v:
+        pickle.dump(arr, v)
+
+def load_glove_data(processed_data_path, glove_dim):
+    path = os.path.join(processed_data_path, 'trimmed_glove.6B.%dd.npz' % glove_dim)
+    return np.load(path)
+
+def ensure_dir(path):
     try:
-        os.mkdir(path)
-    except OSError:
-        pass
+        os.makedirs(path)
+    except OSError as ex:
+        if ex.errno != errno.EEXIST:
+            raise

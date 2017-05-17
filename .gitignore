@@ -1,6 +1,25 @@
 data/*
 predictions/*
 
+requirements.txt
+data/
+predictions/
+desktop.ini
+
+glove*
+
+nli_env/
+
+*.dat
+*.npz
+
+kerems*
+
+graphs/
+checkpoints/
+
+*.sw*
+
 
 
 # Byte-compiled / optimized / DLL files
@@ -104,20 +123,3 @@ ENV/
 
 # mypy
 .mypy_cache/
-
-requirements.txt
-data/
-predictions/
-desktop.ini
-
-glove*
-
-nli_env/
-
-*.dat
-*.npz
-
-kerems*
-
-graphs/
-checkpoints/

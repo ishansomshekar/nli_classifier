@@ -2,22 +2,17 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import gzip
 import os
-import re
-import tarfile
-import argparse
-# import cPickle as pickle
+import sys
 import pickle
-
-from six.moves import urllib
 
 from tensorflow.python.platform import gfile
 from tqdm import *
 import numpy as np
 from os.path import join as pjoin
 
-import config
+module_home = os.environ['NLI_PATH']
+sys.path.insert(0, module_home)
 
 
 def return_files(path):
@@ -34,15 +29,14 @@ class EmbeddingWrapper(object):
         self.glove_dir = "FILL GLOVE DIR HERE"
         self.glove_dim = 50
         self.num_tokens = 0
-        self.file_names = []
-        self.pad = 'PAD'
-        self.unk = 'UNK'
-        # self.bills_datapath = os.getcwd() + config.DATA_DIR + '/speech_transcriptions/train/tokenized/'
-        self.bills_datapath = config.DATA_DIR + '/speech_transcriptions/train/tokenized/'
+        self.unk = "<UNK>"
+        self.pad = "<PAD>"
+        self.data_path = pjoin(module_home, 'data/speech_transcriptions/train/tokenized/')
+        self.vocab_path = pjoin(module_home, 'data/processed/vocab.dat')
 
 
     def build_vocab(self):
-        if not gfile.Exists(os.getcwd() + '/vocab.dat'):
+        if not gfile.Exists(self.vocab_path):
             print ("building vocabulary for all files")
             dataset_len = 0
             vocab = dict()
@@ -50,7 +44,7 @@ class EmbeddingWrapper(object):
             idx = 0
             wordcounter = 0
             file_count = 0
-            for file in return_files(self.bills_datapath):
+            for file in return_files(self.data_path):
                 with open(file, 'r') as f:
                     for i, line in enumerate(f):
                         words = line.split()
@@ -62,7 +56,7 @@ class EmbeddingWrapper(object):
                                 idx += 1
                     file_count+=1
                     if file_count % 100 == 0:
-                        print ("finished reading %d bills" % file_count)
+                        print ("finished reading %d transcripts" % file_count)
 
             vocab[self.unk] = idx
             reverse_vocab += [self.unk]
@@ -76,23 +70,21 @@ class EmbeddingWrapper(object):
             self.num_tokens = wordcounter
             print( "finished building vocabulary of size %d for all files" %wordcounter)
         else:
-            self.vocab = pickle.load(open('vocab.dat', 'r'))
+            self.vocab = pickle.load(open(self.vocab_path, 'r'))
             self.reverse_vocab = None
             self.num_tokens = len(self.vocab)
+        return self.vocab_path
 
 
-
-        #gemsim.models.word2vec
     def process_glove(self, size = 4e5):
         """
         :param vocab_list: [vocab]
         :return:
         """
-        save_path = os.getcwd() + "/trimmed_glove.6B.{}d.npz".format(self.glove_dim)
+        save_path = pjoin(module_home, "data/processed/trimmed_glove.6B.{}d.npz".format(self.glove_dim))
         if not gfile.Exists(save_path):
             print("build glove")
-            # glove_path = os.path.join(os.getcwd(), "glove.6B.{}d.txt".format(self.glove_dim))
-            glove_path = os.path.join(config.GLOVE_DIR, "glove.6B.{}d.txt".format(self.glove_dim))
+            glove_path = pjoin(module_home, 'data/glove', 'glove.6B.{}d.txt'.format(self.glove_dim))
             glove = np.zeros((len(self.vocab), self.glove_dim))
             not_found = 0
             found_words = []
@@ -128,19 +120,3 @@ class EmbeddingWrapper(object):
             return self.vocab[word]
         else:
             return self.vocab[self.unk]
-
-
-
-if __name__ == '__main__':
-    bills_datapath = os.getcwd() + '/'
-    # gold_summaries_datapath = os.getcwd() +'/ALL_GOLD_SUMMARIES/'
-
-    embedding_wrapper = EmbeddingWrapper()
-    embedding_wrapper.build_vocab()
-    with open('vocab.dat', 'w') as f:
-        pickle.dump(embedding_wrapper.vocab, f)
-        f.close()
-
-    dict_obj = pickle.load(open('vocab.dat', 'r'))
-
-    embedding_wrapper.process_glove()
