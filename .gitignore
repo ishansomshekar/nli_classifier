@@ -106,3 +106,5 @@ predictions/
 desktop.ini
 
 glove*
+
+nli_env/
