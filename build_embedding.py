@@ -7,7 +7,8 @@ import os
 import re
 import tarfile
 import argparse
-import cPickle as pickle
+# import cPickle as pickle
+import pickle
 
 from six.moves import urllib
 
@@ -16,15 +17,17 @@ from tqdm import *
 import numpy as np
 from os.path import join as pjoin
 
+import config
+
 
 def return_files(path):
     return [path+f for f in os.listdir(path) if (not f.startswith('missing_files') and not f.startswith('.'))]
 
 def return_dir(path):
     return [path+f for f in os.listdir(path) if (not f.startswith('.'))]
-    
+
 class EmbeddingWrapper(object):
-    def __init__(self):     
+    def __init__(self):
         self.vocab = None
         self.reverse_vocab = None
         self.embeddings = None
@@ -34,7 +37,8 @@ class EmbeddingWrapper(object):
         self.file_names = []
         self.pad = 'PAD'
         self.unk = 'UNK'
-        self.bills_datapath = os.getcwd() + '/data/speech_transcriptions/train/tokenized/'
+        # self.bills_datapath = os.getcwd() + config.DATA_DIR + '/speech_transcriptions/train/tokenized/'
+        self.bills_datapath = config.DATA_DIR + '/speech_transcriptions/train/tokenized/'
 
 
     def build_vocab(self):
@@ -73,12 +77,12 @@ class EmbeddingWrapper(object):
             print( "finished building vocabulary of size %d for all files" %wordcounter)
         else:
             self.vocab = pickle.load(open('vocab.dat', 'r'))
-            self.reverse_vocab = None            
+            self.reverse_vocab = None
             self.num_tokens = len(self.vocab)
 
 
 
-        #gemsim.models.word2vec 
+        #gemsim.models.word2vec
     def process_glove(self, size = 4e5):
         """
         :param vocab_list: [vocab]
@@ -87,7 +91,8 @@ class EmbeddingWrapper(object):
         save_path = os.getcwd() + "/trimmed_glove.6B.{}d.npz".format(self.glove_dim)
         if not gfile.Exists(save_path):
             print("build glove")
-            glove_path = os.path.join(os.getcwd(), "glove.6B.{}d.txt".format(self.glove_dim))
+            # glove_path = os.path.join(os.getcwd(), "glove.6B.{}d.txt".format(self.glove_dim))
+            glove_path = os.path.join(config.GLOVE_DIR, "glove.6B.{}d.txt".format(self.glove_dim))
             glove = np.zeros((len(self.vocab), self.glove_dim))
             not_found = 0
             found_words = []
@@ -138,17 +143,4 @@ if __name__ == '__main__':
 
     dict_obj = pickle.load(open('vocab.dat', 'r'))
 
-    # with open('reverse_vocab.dat', 'w') as f:
-    #     pickle.dump(embedding_wrapper.reverse_vocab, f)
-    #     f.close()
-
-    # dict_obj = pickle.load(open('reverse_vocab.dat', 'r'))
-
-    # assert dict_obj['games'] == embedding_wrapper.vocab['games']
-    # print(dict_obj['games'])
-
-    # print(embedding_wrapper.vocab)
-    print
-    # print(embedding_wrapper.reverse_vocab)
-    print
     embedding_wrapper.process_glove()

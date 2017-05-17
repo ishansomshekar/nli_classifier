@@ -2,17 +2,15 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from six.moves.urllib.request import urlretrieve
-from six.moves import xrange as range
-
 import os
 import pdb
+import pickle
 import sys
-import numpy as np
-import os.path
-import tensorflow as tf
-import cPickle as pickle
 
+import numpy as np
+from six.moves.urllib.request import urlretrieve
+from six.moves import xrange as range
+import tensorflow as tf
 
 def sparse_tuple_from(sequences, dtype=np.int32):
     """Create a sparse representention of x.
@@ -121,3 +119,13 @@ def make_batches(batch_size, input_mat, labels):
         batches.append((input_mat[i:i + batch_size], labels[i:i + batch_size]))
 
     return batches
+
+
+def make_dir(path):
+    '''
+    Syntactic sugar for creating a dir
+    '''
+    try:
+        os.mkdir(path)
+    except OSError:
+        pass
