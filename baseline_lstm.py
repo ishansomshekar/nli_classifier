@@ -53,7 +53,7 @@ class BaselinePredictor():
         self.glove_dim = 50
         self.embedding_wrapper = embedding_wrapper
         self.num_epochs = 10
-        self.lr = 0.0001
+        self.lr = 0.005
         self.inputs_placeholder = None
         self.labels_placeholder = None
         self.input_mat = input_mat
@@ -86,10 +86,6 @@ class BaselinePredictor():
         return final_embeddings
 
     def add_prediction_op(self, embeddings):
-
-        logits = None 
-
-
         cell = tf.contrib.rnn.LSTMCell(self.num_hidden)
         W = tf.get_variable(name = "W", shape = (self.num_hidden, self.num_classes), initializer = tf.contrib.layers.xavier_initializer(), dtype = tf.float64)
         b = tf.get_variable(name = "b", shape = (self.num_classes), initializer = tf.constant_initializer(0), dtype=tf.float64)
@@ -97,18 +93,17 @@ class BaselinePredictor():
         # x = self.inputs_placeholder
         shape = tf.shape(embeddings)
 
-        outputs, state = tf.nn.dynamic_rnn(cell, embeddings, dtype=tf.float64)
-        outputs = tf.reshape(outputs, [-1, self.num_hidden])
-
-        logits = tf.matmul(outputs, W) + b
-        logits = tf.reshape(logits, [shape[0], shape[1], self.num_classes])
+        _, state = tf.nn.dynamic_rnn(cell, embeddings, dtype=tf.float64)
+        # outputs = tf.reshape(outputs, [-1, self.num_hidden])
+        logits = tf.matmul(state[1], W) + b
         self.preds = logits
+        # print self.preds
         # logits = tf.reshape(logits, [shape[0], shape[1], self.num_classes])
 
     def add_loss_op(self):
-        print self.labels_placeholder.get_shape()
+        # print self.labels_placeholder.get_shape()
         loss = tf.nn.softmax_cross_entropy_with_logits(logits=self.preds, labels=self.labels_placeholder)
-        self.loss = tf.reduce_sum(loss)
+        self.loss = tf.reduce_mean(loss)
         # return self.loss
     
     def add_optimization(self):
@@ -121,6 +116,7 @@ class BaselinePredictor():
 
         discrete_preds = tf.argmax(self.preds, 1)
         discrete_labels = tf.argmax(self.labels_placeholder, 1)
+        # print discrete_preds
         self.accuracy = tf.reduce_mean(tf.cast(discrete_preds == discrete_labels, dtype=tf.float32))
         # self.accuracy = tf.metrics.accuracy(self.labels_placeholder, discrete_preds)
 
@@ -143,7 +139,8 @@ class BaselinePredictor():
 
         feed = self.create_feed_dict(inputs=inputs_batch, labels=labels_batch)
 
-        _, loss, accuracy = sess.run([self.train_op, self.loss, self.accuracy], feed_dict=feed)
+        loss, accuracy = sess.run([self.loss, self.accuracy], feed_dict=feed)
+        _ = sess.run([self.train_op], feed_dict=feed)
         return loss, accuracy
 
 
@@ -154,17 +151,16 @@ class BaselinePredictor():
         # TODO the loop below is a batch loop 
         batches = make_batches(self.batch_size, self.input_mat, self.labels)
         for batch in batches:
-            print batch[0].shape
-            print batch[1].shape
+            # print batch[0].shape
+            # print batch[1].shape
             tf.get_variable_scope().reuse_variables()
             loss, accuracy = self.train_on_batch(sess, batch[0], batch[1])
             prog.update(count + 1, [("train loss", loss), ("accuracy", accuracy)])
             count += 1
-        print("")
 
-        print("Evaluating on development data")
-        # exact_match, entity_scores = self.evaluate_epoch(sess)
-        print("Entity level end_exact_match/start_exact_match/P/R/F1: %.2f/%.2f/%.2f/%.2f", exact_match[0], exact_match[1], entity_scores[0], entity_scores[1], entity_scores[2])
+        # print("Evaluating on development data")
+        # # exact_match, entity_scores = self.evaluate_epoch(sess)
+        # print("Entity level end_exact_match/start_exact_match/P/R/F1: %.2f/%.2f/%.2f/%.2f", exact_match[0], exact_match[1], entity_scores[0], entity_scores[1], entity_scores[2])
 
 
     
@@ -181,7 +177,6 @@ class BaselinePredictor():
                     print("New best score! Saving model in %s" % self.model_output)
                     saver.save(sess, self.model_output)
             epoch_scores.append(score)
-            print("")
 
 
 
