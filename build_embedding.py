@@ -51,7 +51,7 @@ class EmbeddingWrapper(object):
             wordcounter = 0
             file_count = 0
             for file in return_files(self.bills_datapath):
-                print(file)
+                # print(file)
                 with open(file, 'r') as f:
                     for i, line in enumerate(f):
                         words = line.split()
