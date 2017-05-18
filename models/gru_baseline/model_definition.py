@@ -35,7 +35,6 @@ class BaselinePredictor():
 
         self.num_classes = model_config.num_classes
 
-        self.glove_dim = model_config.glove_dim
         self.num_epochs = model_config.num_epochs
         self.batch_size = model_config.batch_size
 
@@ -64,10 +63,13 @@ class BaselinePredictor():
 
 
     def return_embeddings(self):
-        glove_data = load_glove_data(model_config.processed_data_path, self.glove_dim)
-        embeddings = tf.Variable(glove_data['glove'])
+        embedding_data = load_embedding_data(model_config.processed_data_path)
+        self.embedding_dim = embedding_data.shape[1]
+        print "__________________________________"
+        print embedding_data.shape
+        embeddings = tf.Variable(embedding_data)
         final_embeddings = tf.nn.embedding_lookup(embeddings, self.inputs_placeholder)
-        final_embeddings = tf.reshape(final_embeddings, (-1, self.max_length, self.glove_dim))
+        final_embeddings = tf.cast(tf.reshape(final_embeddings, (-1, self.max_length, self.embedding_dim)), tf.float64)
         return final_embeddings
 
 

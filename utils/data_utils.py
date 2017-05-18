@@ -13,6 +13,10 @@ from six.moves.urllib.request import urlretrieve
 from six.moves import xrange as range
 import tensorflow as tf
 
+"""
+Data Utils: holds model independent common utility functions for the task
+"""
+
 lang_dict = {
     'HIN' : 0,
     'ARA' : 1,
@@ -136,9 +140,10 @@ def build_data_partition(paths, embedding_wrapper):
         pickle.dump(maxlen, v)
 
 
-def load_glove_data(processed_data_path, glove_dim):
-    path = os.path.join(processed_data_path, 'trimmed_glove.6B.%dd.npz' % glove_dim)
-    return np.load(path)
+def load_embedding_data(processed_data_path):
+    path = os.path.join(processed_data_path, 'embeddings.npz')
+    data = np.load(path)
+    return data["embedding"]
 
 def ensure_dir(path):
     try:

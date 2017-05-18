@@ -8,7 +8,10 @@ continue_checkpoint = 'checkpoints/run1'
 
 logs_path = os.path.join('./tf_log')
 
-processed_data_path = os.path.join(module_home, 'data/processed/')
+processed_data_path = os.path.join(os.getcwd(), 'processed/')
+
+vocab_path = os.path.join(processed_data_path, 'vocab.dat')
+embeddings_path = os.path.join(processed_data_path, 'embeddings.npz')
 
 train_paths = {
         'inputs_in': os.path.join(module_home, 'data/speech_transcriptions/train/tokenized/'),
@@ -32,7 +35,9 @@ num_classes = 11
 log_frequency = 100
 
 # model hyperparameters
-glove_dim = 50
+embedding_type = "glove" # or 'one_hot'
+
+embedding_dim = 50
 
 num_epochs = 10
 batch_size = 64

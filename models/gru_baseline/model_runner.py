@@ -10,7 +10,8 @@ from tensorflow.python.platform import gfile
 #our imports
 module_home = os.environ['NLI_PATH']
 sys.path.insert(0, module_home)
-from utils.embedding_wrapper import EmbeddingWrapper
+from utils.embedding_wrappers.glove import GloveEmbeddingWrapper
+from utils.embedding_wrappers.one_hot import OneHotEmbeddingWrapper
 from utils.data_utils import *
 
 import model_config
@@ -34,14 +35,18 @@ def train_model(train_data, dev_data):
             print('Epoch', epoch, ' - Train score:', epoch_train_scores[epoch], ' - Dev score:', epoch_dev_scores[epoch])
 
 
-def prep_data():
+def prep_data(embedding_type="glove"):
     ensure_dir('checkpoints')
     ensure_dir(model_config.best_checkpoint)
     ensure_dir(model_config.continue_checkpoint)
 
-    embedding_wrapper = EmbeddingWrapper()
-    embedding_wrapper.build_vocab()
-    embedding_wrapper.process_glove()
+    embedding_wrapper = None
+    if embedding_type == "glove":
+        embedding_wrapper = GloveEmbeddingWrapper()
+    elif embedding_type == "one_hot":
+        embedding_wrapper = OneHotEmbeddingWrapper()
+    embedding_wrapper.build_vocab(model_config.vocab_path)
+    embedding_wrapper.process_embeddings(model_config.embeddings_path)
     if not gfile.Exists(model_config.train_paths['inputs_out']) or not gfile.Exists(model_config.dev_paths['inputs_out']):
         print('build data')
         build_data_partition(model_config.train_paths, embedding_wrapper)
@@ -54,7 +59,10 @@ def prep_data():
 
 
 def main():
-    train_data, dev_data = prep_data()
+    embedding_type = "glove"
+    if len(sys.argv) > 1:
+        embedding_type = sys.argv[1]
+    train_data, dev_data = prep_data(embedding_type)
     with tf.variable_scope('baseline_model'):
         train_model(train_data, dev_data)
 
