@@ -6,7 +6,7 @@ predictions/
 graphs/
 checkpoints/
 
-glove*
+glove.6B*
 
 nli_env/
 
