@@ -152,6 +152,9 @@ def ensure_dir(path):
         if ex.errno != errno.EEXIST:
             raise
 
+def get_script_path():
+    return os.path.dirname(os.path.realpath(sys.argv[0]))
+
 def load_data(paths):
     data = {}
     data['inputs'] = pickle.load(open(paths['inputs_out'], 'rb'))

@@ -10,8 +10,6 @@ from tensorflow.python.platform import gfile
 #our imports
 module_home = os.environ['NLI_PATH']
 sys.path.insert(0, module_home)
-from utils.embedding_wrappers.glove import GloveEmbeddingWrapper
-from utils.embedding_wrappers.one_hot import OneHotEmbeddingWrapper
 from utils.data_utils import *
 
 import model_config
@@ -40,11 +38,7 @@ def prep_data():
     ensure_dir(model_config.best_checkpoint)
     ensure_dir(model_config.continue_checkpoint)
 
-    embedding_wrapper = None
-    if model_config.embedding_type == "glove":
-        embedding_wrapper = GloveEmbeddingWrapper()
-    elif model_config.embedding_type == "one_hot":
-        embedding_wrapper = OneHotEmbeddingWrapper()
+    embedding_wrapper = model_config.get_embedding_wrapper()
     embedding_wrapper.build_vocab(model_config.vocab_path)
     embedding_wrapper.process_embeddings(model_config.embeddings_path)
     if not gfile.Exists(model_config.train_paths['inputs_out']) or not gfile.Exists(model_config.dev_paths['inputs_out']):

@@ -2,13 +2,19 @@ import logging
 import os
 module_home = os.environ['NLI_PATH']
 
+from utils.embedding_wrappers.random import RandomEmbeddingWrapper
+from utils.embedding_wrappers.glove import GloveEmbeddingWrapper
+from utils.embedding_wrappers.one_hot import OneHotEmbeddingWrapper
+
+from utils.data_utils import get_script_path
+
 # data
 best_checkpoint = 'checkpoints/best'
 continue_checkpoint = 'checkpoints/run1'
 
 logs_path = os.path.join('./tf_log')
 
-processed_data_path = os.path.join(os.getcwd(), 'processed/')
+processed_data_path = os.path.join(get_script_path(), 'processed/')
 
 vocab_path = os.path.join(processed_data_path, 'vocab.dat')
 embeddings_path = os.path.join(processed_data_path, 'embeddings.npz')
@@ -35,7 +41,6 @@ num_classes = 11
 log_frequency = 100
 
 # model hyperparameters
-embedding_type = "glove" # or 'one_hot'
 
 embedding_dim = 50
 
@@ -49,6 +54,9 @@ learning_rate = 1e-3
 l2_rate = 1e-4
 
 #
+
+def get_embedding_wrapper():
+    return RandomEmbeddingWrapper()
 
 def get_logger():
     logger = logging.getLogger("log_baseline")
