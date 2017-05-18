@@ -67,7 +67,7 @@ class BaselinePredictor():
         self.embedding_dim = embedding_data.shape[1]
         print "__________________________________"
         print embedding_data.shape
-        embeddings = tf.Variable(embedding_data)
+        embeddings = tf.Variable(embedding_data, trainable=model_config.embeddings_trainable)
         final_embeddings = tf.nn.embedding_lookup(embeddings, self.inputs_placeholder)
         final_embeddings = tf.cast(tf.reshape(final_embeddings, (-1, self.max_length, self.embedding_dim)), tf.float64)
         return final_embeddings

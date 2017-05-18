@@ -71,8 +71,7 @@ class OneHotEmbeddingWrapper(object):
     def process_embeddings(self, embeddings_path):
         if not gfile.Exists(embeddings_path):
             print("build one hot vectors")
-            vocab_len = len(self.vocab)
-            embeddings = np.diag(np.asarray(xrange(vocab_len)))
+            embeddings = np.diag(np.ones(len(self.vocab)))
             np.savez_compressed(embeddings_path, embedding=embeddings)
 
     def get_value(self, word):
@@ -80,3 +79,6 @@ class OneHotEmbeddingWrapper(object):
             return self.vocab[word]
         else:
             return self.vocab[self.unk]
+
+    def get_indices(self, text):
+        return [self.get_value(word) for word in text.split()]

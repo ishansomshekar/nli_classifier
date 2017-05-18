@@ -5,6 +5,7 @@ module_home = os.environ['NLI_PATH']
 from utils.embedding_wrappers.random import RandomEmbeddingWrapper
 from utils.embedding_wrappers.glove import GloveEmbeddingWrapper
 from utils.embedding_wrappers.one_hot import OneHotEmbeddingWrapper
+from utils.embedding_wrappers.char_level import CharLevelEmbeddingWrapper
 
 from utils.data_utils import get_script_path
 
@@ -42,8 +43,6 @@ log_frequency = 100
 
 # model hyperparameters
 
-embedding_dim = 50
-
 num_epochs = 10
 batch_size = 64
 
@@ -56,7 +55,12 @@ l2_rate = 1e-4
 #
 
 def get_embedding_wrapper():
-    return RandomEmbeddingWrapper()
+    return CharLevelEmbeddingWrapper() # for char level NN
+    #return GloveEmbeddingWrapper() # for GloVe vector embeddings
+    #return OneHotEmbeddingWrapper() # for one-hot word embeddings (warning: slow)
+    #return RandomEmbeddingWrapper() # for random initialized word embeddings
+
+embeddings_trainable = False
 
 def get_logger():
     logger = logging.getLogger("log_baseline")

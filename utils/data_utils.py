@@ -113,8 +113,7 @@ def build_data_partition(paths, embedding_wrapper):
         idxs = []
         with open(file, 'r') as f:
             text = f.read()
-            text = text.split()
-            idxs = [embedding_wrapper.get_value(word) for word in text]
+            idxs = embedding_wrapper.get_idxs(text)
         dataset.append(idxs)
     arr = []
 

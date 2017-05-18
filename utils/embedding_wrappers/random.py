@@ -90,3 +90,6 @@ class RandomEmbeddingWrapper(object):
             return self.vocab[word]
         else:
             return self.vocab[self.unk]
+
+    def get_indices(self, text):
+        return [self.get_value(word) for word in text.split()]
