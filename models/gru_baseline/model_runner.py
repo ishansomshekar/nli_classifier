@@ -35,15 +35,15 @@ def train_model(train_data, dev_data):
             print('Epoch', epoch, ' - Train score:', epoch_train_scores[epoch], ' - Dev score:', epoch_dev_scores[epoch])
 
 
-def prep_data(embedding_type="glove"):
+def prep_data():
     ensure_dir('checkpoints')
     ensure_dir(model_config.best_checkpoint)
     ensure_dir(model_config.continue_checkpoint)
 
     embedding_wrapper = None
-    if embedding_type == "glove":
+    if model_config.embedding_type == "glove":
         embedding_wrapper = GloveEmbeddingWrapper()
-    elif embedding_type == "one_hot":
+    elif model_config.embedding_type == "one_hot":
         embedding_wrapper = OneHotEmbeddingWrapper()
     embedding_wrapper.build_vocab(model_config.vocab_path)
     embedding_wrapper.process_embeddings(model_config.embeddings_path)
@@ -59,10 +59,7 @@ def prep_data(embedding_type="glove"):
 
 
 def main():
-    embedding_type = "glove"
-    if len(sys.argv) > 1:
-        embedding_type = sys.argv[1]
-    train_data, dev_data = prep_data(embedding_type)
+    train_data, dev_data = prep_data()
     with tf.variable_scope('baseline_model'):
         train_model(train_data, dev_data)
 
