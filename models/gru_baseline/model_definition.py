@@ -48,7 +48,7 @@ class BaselinePredictor():
 
 
     def add_placeholders(self):
-        self.inputs_placeholder = tf.placeholder(tf.int32, shape=(None, self.max_length))
+        self.inputs_placeholder = tf.placeholder(tf.int32, shape=(None, None))
         self.seq_lens_placeholder = tf.placeholder(tf.int32, shape=(None))
         self.labels_placeholder = tf.placeholder(tf.int32, shape=(None, self.num_classes))
 
@@ -63,22 +63,21 @@ class BaselinePredictor():
 
 
     def return_embeddings(self):
-        embedding_data = load_embedding_data(model_config.processed_data_path)
-        self.embedding_dim = embedding_data.shape[1]
-        print "__________________________________"
-        print embedding_data.shape
+        embedding_data = load_embedding_data(model_config.embeddings_path)
+        max_length = tf.shape(self.inputs_placeholder)[1]
+        embedding_dim = embedding_data.shape[1]
         embeddings = tf.Variable(embedding_data, trainable=model_config.embeddings_trainable)
         final_embeddings = tf.nn.embedding_lookup(embeddings, self.inputs_placeholder)
-        final_embeddings = tf.cast(tf.reshape(final_embeddings, (-1, self.max_length, self.embedding_dim)), tf.float64)
-        return final_embeddings
+        final_embeddings = tf.cast(tf.reshape(final_embeddings, (-1, max_length, embedding_dim)), tf.float64)
+        self.embeddings = final_embeddings
 
 
-    def add_prediction_op(self, embeddings):
+    def add_prediction_op(self):
         gru_cell = tf.contrib.rnn.GRUCell(self.num_hidden)
         multi_cell = tf.contrib.rnn.MultiRNNCell([gru_cell] * self.num_layers)
         _, state = tf.nn.dynamic_rnn(
                 multi_cell,
-                embeddings,
+                self.embeddings,
                 sequence_length=self.seq_lens_placeholder,
                 dtype=tf.float64)
 
@@ -114,9 +113,9 @@ class BaselinePredictor():
 
     def initialize_model(self):
         self.add_placeholders()
-        embeddings = self.return_embeddings()
+        self.return_embeddings()
         self.logger.info("Running baseline...",)
-        self.add_prediction_op(embeddings)
+        self.add_prediction_op()
         self.add_loss_op()
         self.add_optimization()
         self.add_accuracy_op()
@@ -159,8 +158,8 @@ class BaselinePredictor():
         final_accuracy = total_accuracy / count
         if final_accuracy > best_score:
             best_score = final_accuracy
-            print("\nNew best score! Saving model in %s" % config.best_checkpoint)
-            saver.save(sess, config.best_checkpoint + '/baseline_lstm')
+            print("\nNew best score! Saving model in %s" % model_config.best_checkpoint)
+            saver.save(sess, model_config.best_checkpoint + '/baseline_lstm')
         return final_accuracy, best_score
 
     def fit(self, sess, saver, writer, last_step):
