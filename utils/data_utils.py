@@ -7,6 +7,7 @@ import pickle
 import errno
 import sys
 import csv
+import shutil
 
 import numpy as np
 from six.moves.urllib.request import urlretrieve
@@ -113,7 +114,7 @@ def build_data_partition(paths, embedding_wrapper):
         idxs = []
         with open(file, 'r') as f:
             text = f.read()
-            idxs = embedding_wrapper.get_idxs(text)
+            idxs = embedding_wrapper.get_indices(text)
         dataset.append(idxs)
     arr = []
 
@@ -139,8 +140,7 @@ def build_data_partition(paths, embedding_wrapper):
         pickle.dump(maxlen, v)
 
 
-def load_embedding_data(processed_data_path):
-    path = os.path.join(processed_data_path, 'embeddings.npz')
+def load_embedding_data(path):
     data = np.load(path)
     return data["embedding"]
 
@@ -161,3 +161,10 @@ def load_data(paths):
     data['labels'] = pickle.load(open(paths['labels_out'], 'rb'))
     data['max_len'] = pickle.load(open(paths['max_len_out'], 'rb'))
     return data
+
+def clear_data(path):
+    try:
+        shutil.rmtree(path)
+    except OSError as ex:
+        if ex.errno != errno.ENOENT:
+            raise

@@ -18,7 +18,9 @@ logs_path = os.path.join('./tf_log')
 processed_data_path = os.path.join(get_script_path(), 'processed/')
 
 vocab_path = os.path.join(processed_data_path, 'vocab.dat')
+pos_path = os.path.join(processed_data_path, 'pos_vocab.dat')
 embeddings_path = os.path.join(processed_data_path, 'embeddings.npz')
+pos_embeddings_path = os.path.join(processed_data_path, 'pos_embeddings.npz')
 
 train_paths = {
         'inputs_in': os.path.join(module_home, 'data/speech_transcriptions/train/tokenized/'),
