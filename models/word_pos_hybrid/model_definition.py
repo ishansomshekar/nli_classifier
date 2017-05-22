@@ -74,7 +74,6 @@ class WordPOSPredictor():
         word_max_seq_len = tf.shape(self.word_inputs_placeholder)[0]
 
         word_embeddings = tf.get_variable(name="word_embeddings", shape=word_embedding_data.shape, initializer=tf.constant_initializer(word_embedding_data), trainable=model_config.embeddings_trainable)
-        del word_embedding_data
         final_word_embeddings = tf.nn.embedding_lookup(word_embeddings, self.word_inputs_placeholder)
         final_word_embeddings = tf.cast(tf.reshape(final_word_embeddings, (-1, word_max_seq_len, self.word_embedding_dim)), tf.float64)
         self.word_embeddings = final_word_embeddings
@@ -86,7 +85,6 @@ class WordPOSPredictor():
         pos_max_seq_len = tf.shape(self.pos_inputs_placeholder)[0]
 
         pos_embeddings = tf.get_variable(name="pos_embeddings", shape=pos_embedding_data.shape, initializer=tf.constant_initializer(pos_embedding_data), trainable=False)
-        del pos_embedding_data
         final_pos_embeddings = tf.nn.embedding_lookup(pos_embeddings, self.pos_inputs_placeholder)
         final_pos_embeddings = tf.cast(tf.reshape(final_pos_embeddings, (-1, pos_max_seq_len, self.pos_embedding_dim)), tf.float64)
         self.pos_embeddings = final_pos_embeddings
