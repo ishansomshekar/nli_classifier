@@ -67,28 +67,39 @@ class WordPOSPredictor():
         return feed_dict
 
 
-    def add_embeddings(self):
+    def add_embeddings(self, word_embedding_shape, pos_embedding_shape, session):
         word_embedding_data = load_embedding_data(model_config.word_embeddings_path)
-
-        self.word_embedding_dim = word_embedding_data.shape[1]
-        word_max_seq_len = tf.shape(self.word_inputs_placeholder)[0]
-
-        word_embeddings = tf.get_variable(name="word_embeddings", shape=word_embedding_data.shape, initializer=tf.constant_initializer(word_embedding_data), trainable=model_config.embeddings_trainable)
-        final_word_embeddings = tf.nn.embedding_lookup(word_embeddings, self.word_inputs_placeholder)
-        final_word_embeddings = tf.cast(tf.reshape(final_word_embeddings, (-1, word_max_seq_len, self.word_embedding_dim)), tf.float64)
-        self.word_embeddings = final_word_embeddings
-
-
         pos_embedding_data = load_embedding_data(model_config.pos_embeddings_path)
 
-        self.pos_embedding_dim = pos_embedding_data.shape[1]
+        word_embeddings = tf.Variable(tf.constant(0.0, shape=word_embedding_data.shape), name="word_embeddings", trainable=model_config.embeddings_trainable)
+        word_embedding_placeholder = tf.placeholder(tf.float32, word_embedding_data.shape)
+
+        final_word_embeddings = tf.nn.embedding_lookup(word_embeddings, self.word_inputs_placeholder)
+
+        word_embedding_dim = word_embedding_data.shape[1]
+        word_max_seq_len = tf.shape(self.word_inputs_placeholder)[0]
+
+        word_embedding_init = word_embeddings.assign(word_embedding_placeholder)
+
+        word_embeddings = tf.cast(tf.reshape(word_embeddings, (-1, word_max_seq_len, word_embedding_dim)), tf.float64)
+
+
+
+        pos_embeddings = tf.Variable(tf.constant(0.0, shape=pos_embedding_data.shape), name="pos_embeddings", trainable=False)
+        pos_embedding_placeholder = tf.placeholder(tf.float32, pos_embedding_data.shape)
+
+        final_pos_embeddings = tf.nn.embedding_lookup(pos_embeddings, self.pos_inputs_placeholder)
+
+        pos_embedding_dim = pos_embedding_data.shape[1]
         pos_max_seq_len = tf.shape(self.pos_inputs_placeholder)[0]
 
-        pos_embeddings = tf.get_variable(name="pos_embeddings", shape=pos_embedding_data.shape, initializer=tf.constant_initializer(pos_embedding_data), trainable=False)
-        final_pos_embeddings = tf.nn.embedding_lookup(pos_embeddings, self.pos_inputs_placeholder)
-        final_pos_embeddings = tf.cast(tf.reshape(final_pos_embeddings, (-1, pos_max_seq_len, self.pos_embedding_dim)), tf.float64)
-        self.pos_embeddings = final_pos_embeddings
-        self.full_embeddings = tf.concat([final_word_embeddings, final_pos_embeddings], axis=2)
+        pos_embedding_init = pos_embeddings.assign(pos_embedding_placeholder)
+
+        pos_embeddings = tf.cast(tf.reshape(pos_embeddings, (-1, pos_max_seq_len, pos_embedding_dim)), tf.float64)
+
+        self.full_embeddings = tf.concat([word_embeddings, pos_embeddings], axis=2)
+
+        session.run([word_embedding_init, pos_embedding_init], feed_dict={word_embedding_placeholder:word_embedding_data, pos_embedding_placeholder:pos_embedding_data})
 
 
     def add_prediction_op(self):
@@ -134,9 +145,9 @@ class WordPOSPredictor():
             tf.summary.scalar("accuracy", self.accuracy)
             self.summary_op = tf.summary.merge_all()
 
-    def initialize_model(self):
+    def initialize_model(self, session):
         self.add_placeholders()
-        self.add_embeddings()
+        self.add_embeddings(session)
         self.logger.info("Running POS-Word hybrid model...",)
         self.add_prediction_op()
         self.add_loss_op()
