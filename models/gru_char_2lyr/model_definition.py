@@ -80,9 +80,6 @@ class BaselinePredictor():
                 tf.contrib.rnn.GRUCell(self.num_hidden),
                 output_keep_prob = self.dropout_keep_prob_placeholder)
                     for _ in xrange(self.num_layers)])
-        #gru_cell = tf.contrib.rnn.GRUCell(self.num_hidden)
-        #gru_cell = tf.contrib.rnn.DropoutWrapper(gru_cell, output_keep_prob=self.dropout_keep_prob_placeholder)
-        #multi_cell = tf.contrib.rnn.MultiRNNCell([gru_cell] * self.num_layers)
         _, state = tf.nn.dynamic_rnn(
                 gru_cell,
                 self.embeddings,
@@ -148,7 +145,7 @@ class BaselinePredictor():
             if accuracy > best_score:
                 best_score = accuracy
             if (index + last_step + 1) % model_config.log_frequency == 0:
-                saver.save(sess, model_config.continue_checkpoint + '/baseline_lstm', index + last_step)
+                saver.save(sess, model_config.continue_checkpoint, index + last_step)
         return accuracy, best_score
 
     def eval_dev(self, sess, saver, best_score):
@@ -167,7 +164,7 @@ class BaselinePredictor():
         if final_accuracy > best_score:
             best_score = final_accuracy
             print("\nNew best score! Saving model in %s" % model_config.best_checkpoint)
-            saver.save(sess, model_config.best_checkpoint + '/baseline_lstm')
+            saver.save(sess, model_config.best_checkpoint)
         return final_accuracy, best_score
 
     def fit(self, sess, saver, writer, last_step):

@@ -38,7 +38,7 @@ dev_paths = {
         }
 
 num_classes = 11
-log_frequency = 100
+log_frequency = 1000
 
 # model hyperparameters
 
