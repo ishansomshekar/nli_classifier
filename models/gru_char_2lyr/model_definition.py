@@ -51,13 +51,15 @@ class BaselinePredictor():
         self.inputs_placeholder = tf.placeholder(tf.int32, shape=(None, None))
         self.seq_lens_placeholder = tf.placeholder(tf.int32, shape=(None))
         self.labels_placeholder = tf.placeholder(tf.int32, shape=(None, self.num_classes))
+        self.dropout_keep_prob_placeholder = tf.placeholder(tf.float64)
 
 
-    def create_feed_dict(self, inputs, lens, labels):
+    def create_feed_dict(self, inputs, lens, labels, dropout_prob):
         feed_dict = {
             self.inputs_placeholder : inputs,
             self.seq_lens_placeholder: lens,
-            self.labels_placeholder : labels
+            self.labels_placeholder : labels,
+            self.dropout_keep_prob_placeholder: dropout_prob
         }
         return feed_dict
 
@@ -74,6 +76,7 @@ class BaselinePredictor():
 
     def add_prediction_op(self):
         gru_cell = tf.contrib.rnn.GRUCell(self.num_hidden)
+        gru_cell = tf.contrib.rnn.DropoutWrapper(gru_cell, output_keep_prob=self.dropout_keep_prob_placeholder)
         multi_cell = tf.contrib.rnn.MultiRNNCell([gru_cell] * self.num_layers)
         _, state = tf.nn.dynamic_rnn(
                 multi_cell,
@@ -122,7 +125,7 @@ class BaselinePredictor():
         self.add_summaries()
 
     def train_on_batch(self, sess, inputs_batch, lens_batch, labels_batch):
-        feed = self.create_feed_dict(inputs=inputs_batch, lens=lens_batch, labels=labels_batch)
+        feed = self.create_feed_dict(inputs=inputs_batch, lens=lens_batch, labels=labels_batch, dropout_prob=model_config.dropout_keep_prob)
         _, loss, accuracy, summary = sess.run([self.train_op, self.loss, self.accuracy, self.summary_op], feed_dict=feed)
         return loss, accuracy, summary
 
@@ -150,7 +153,7 @@ class BaselinePredictor():
         batches = make_batches(1, self.dev_data)
         for batch in batches:
             tf.get_variable_scope().reuse_variables()
-            feed = self.create_feed_dict(inputs=batch[0], lens=batch[1], labels=batch[2])
+            feed = self.create_feed_dict(inputs=batch[0], lens=batch[1], labels=batch[2], dropout_prob=1.0)
             loss, accuracy = sess.run([self.loss, self.accuracy], feed_dict=feed)
             prog.update(count + 1, [("dev loss", loss), ("dev accuracy", accuracy)])
             total_accuracy += accuracy

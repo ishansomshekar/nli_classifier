@@ -8,12 +8,11 @@ checkpoints/
 
 glove.6B*
 
-nli_env/
-
 *.dat
 *.npz
 
 kerems*
+*env/
 
 
 *.sw*
