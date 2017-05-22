@@ -15,9 +15,9 @@ kerems*
 *env/
 
 *.pem
-
-
 *.sw*
+*.ini
+Icon*
 
 
 
