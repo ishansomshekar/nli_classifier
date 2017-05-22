@@ -13,7 +13,7 @@ sys.path.insert(0, module_home)
 
 from utils.progbar import Progbar
 from utils.data_utils import *
-import models.gru_char_2lyr.model_config as model_config
+import model_config
 
 
 class BaselinePredictor():

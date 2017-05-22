@@ -18,6 +18,7 @@ class Annotator:
         buffer = r.content  # bytes
         size, pos = _DecodeVarint(buffer, 0)
         buffer = buffer[pos:(pos + size)]
+        r.connection.close()
         doc = CoreNLP_pb2.Document()
         doc.ParseFromString(buffer)
         annotations = AnnotatedDocument.from_pb(doc)

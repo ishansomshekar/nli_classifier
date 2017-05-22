@@ -13,7 +13,7 @@ sys.path.insert(0, module_home)
 
 from utils.progbar import Progbar
 from utils.data_utils import *
-import models.gru_baseline.model_config as model_config
+import model_config
 
 
 class BaselinePredictor():
@@ -75,11 +75,13 @@ class BaselinePredictor():
 
 
     def add_prediction_op(self):
-        gru_cell = tf.contrib.rnn.GRUCell(self.num_hidden)
-        gru_cell = tf.contrib.rnn.DropoutWrapper(gru_cell, output_keep_prob=self.dropout_keep_prob_placeholder)
-        multi_cell = tf.contrib.rnn.MultiRNNCell([gru_cell] * self.num_layers)
+        gru_cell = tf.contrib.rnn.MultiRNNCell([
+            tf.contrib.rnn.DropoutWrapper(
+                tf.contrib.rnn.GRUCell(self.num_hidden),
+                output_keep_prob = self.dropout_keep_prob_placeholder)
+                    for _ in xrange(self.num_layers)])
         _, state = tf.nn.dynamic_rnn(
-                multi_cell,
+                gru_cell,
                 self.embeddings,
                 sequence_length=self.seq_lens_placeholder,
                 dtype=tf.float64)
