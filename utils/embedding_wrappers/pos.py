@@ -48,10 +48,12 @@ class PosEmbeddingWrapper(object):
                 with open(file, 'r') as f:
                     for i, line in enumerate(f):
                         pos_tags = self.annotator.annotate_pos(line)
+			"""
                         if len(pos_tags) != len(line.split()):
                             print(pos_tags)
                             print(line.split())
                             assert False
+			"""
 
                         for pos in pos_tags:
                             wordcounter += 1
@@ -90,7 +92,7 @@ class PosEmbeddingWrapper(object):
             embeddings = np.diag(np.ones(len(self.vocab)))
             np.savez_compressed(embeddings_path, embedding=embeddings)
             print("saved POS embeddings matrix at: {}".format(embeddings_path))
-            self.embeddings = random_embeddings
+            self.embeddings = embeddings
 
 
     def get_indices(self, text):

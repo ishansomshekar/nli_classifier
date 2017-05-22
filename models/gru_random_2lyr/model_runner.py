@@ -13,15 +13,15 @@ sys.path.insert(0, module_home)
 from utils.data_utils import *
 
 import model_config
-from model_definition import WordPOSPredictor
+from model_definition import BaselinePredictor
 
 def train_model(train_data, dev_data):
-    model = WordPOSPredictor(train_data, dev_data)
+    model = BaselinePredictor(train_data, dev_data)
     model.initialize_model()
     tf.get_variable_scope().reuse_variables()
     saver = tf.train.Saver()
     with tf.Session() as session:
-        writer = tf.summary.FileWriter('./graphs/word_pos', session.graph)
+        writer = tf.summary.FileWriter('./graphs/baseline_lstm', session.graph)
         ckpt = tf.train.get_checkpoint_state(os.path.dirname(model_config.continue_checkpoint + '/checkpoint'))
         if ckpt and ckpt.model_checkpoint_path:
             saver.restore(session, ckpt.model_checkpoint_path)
@@ -41,7 +41,7 @@ def prep_data():
 
     embedding_wrapper = model_config.get_embedding_wrapper()
     embedding_wrapper.build_vocab(model_config.vocab_path)
-    embedding_wrapper.process_embeddings(model_config.word_embeddings_path)
+    embedding_wrapper.process_embeddings(model_config.embeddings_path)
     if not gfile.Exists(model_config.train_paths['inputs_out']) or not gfile.Exists(model_config.dev_paths['inputs_out']):
         print('build data')
         build_data_partition(model_config.train_paths, embedding_wrapper)

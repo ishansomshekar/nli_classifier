@@ -8,6 +8,13 @@ class Annotator:
         self.client = CoreNLPClient(server=server, default_annotators=annotators)
 
     def annotate_pos(self, text):
+	annotated = self.client.annotate(text)
+	tokens = []
+	for sentence in annotated.sentences:
+	    tokens += [token.pos for token in sentence.tokens]
+	return tokens
+
+    def annotate_pos_old(self, text):
         properties = {
             'annotators': ','.join(self.client.default_annotators),
             'outputFormat': 'serialized',

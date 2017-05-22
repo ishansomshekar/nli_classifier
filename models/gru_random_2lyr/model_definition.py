@@ -16,13 +16,12 @@ from utils.data_utils import *
 import model_config
 
 
-class WordPOSPredictor():
+class BaselinePredictor():
     def __init__(self, train_data, dev_data):
 
         self.logger = model_config.get_logger()
 
-        self.word_inputs_placeholder = None
-        self.pos_inputs_placeholder = None
+        self.inputs_placeholder = None
         self.seq_lens_placeholder = None
         self.labels_placeholder = None
 
@@ -49,50 +48,41 @@ class WordPOSPredictor():
 
 
     def add_placeholders(self):
-        self.word_inputs_placeholder = tf.placeholder(tf.int32, shape=(None, self.max_length))
-        self.pos_inputs_placeholder = tf.placeholder(tf.int32, shape=(None, self.max_length))
+        self.inputs_placeholder = tf.placeholder(tf.int32, shape=(None, None))
         self.seq_lens_placeholder = tf.placeholder(tf.int32, shape=(None))
         self.labels_placeholder = tf.placeholder(tf.int32, shape=(None, self.num_classes))
-	self.dropout_keep_prob_placeholder = tf.placeholder(tf.float64)
+        self.dropout_keep_prob_placeholder = tf.placeholder(tf.float64)
 
 
-    def create_feed_dict(self, inputs, lens, labels, keep_prob):
+    def create_feed_dict(self, inputs, lens, labels, dropout_prob):
         feed_dict = {
-            self.pos_inputs_placeholder : inputs['pos'],
-            self.word_inputs_placeholder : inputs['word'],
+            self.inputs_placeholder : inputs,
             self.seq_lens_placeholder: lens,
             self.labels_placeholder : labels,
-	    self.dropout_keep_prob_placeholder : keep_prob
+            self.dropout_keep_prob_placeholder: dropout_prob
         }
         return feed_dict
 
 
-    def add_embeddings(self):
-        word_embedding_data = load_embedding_data(model_config.word_embeddings_path)
-        self.word_embedding_dim = word_embedding_data.shape[1]
-        word_embeddings = tf.Variable(word_embedding_data, trainable=model_config.embeddings_trainable)
-        final_word_embeddings = tf.nn.embedding_lookup(word_embeddings, self.word_inputs_placeholder)
-        final_word_embeddings = tf.cast(tf.reshape(final_word_embeddings, (-1, self.max_length, self.word_embedding_dim)), tf.float64)
-        self.word_embeddings = final_word_embeddings
-
-        pos_embedding_data = load_embedding_data(model_config.pos_embeddings_path)
-        self.pos_embedding_dim = pos_embedding_data.shape[1]
-        pos_embeddings = tf.Variable(word_embedding_data, trainable=False)
-        final_pos_embeddings = tf.nn.embedding_lookup(pos_embeddings, self.pos_inputs_placeholder)
-        final_pos_embeddings = tf.cast(tf.reshape(final_pos_embeddings, (-1, self.max_length, self.pos_embedding_dim)), tf.float64)
-        self.pos_embeddings = final_pos_embeddings
-        self.full_embeddings = tf.concat([final_word_embeddings, final_pos_embeddings], axis=2)
+    def return_embeddings(self):
+        embedding_data = load_embedding_data(model_config.embeddings_path)
+        max_length = tf.shape(self.inputs_placeholder)[1]
+        embedding_dim = embedding_data.shape[1]
+        embeddings = tf.Variable(embedding_data, trainable=model_config.embeddings_trainable)
+        final_embeddings = tf.nn.embedding_lookup(embeddings, self.inputs_placeholder)
+        final_embeddings = tf.cast(tf.reshape(final_embeddings, (-1, max_length, embedding_dim)), tf.float64)
+        self.embeddings = final_embeddings
 
 
     def add_prediction_op(self):
 	gru_cell = tf.contrib.rnn.MultiRNNCell([
-	    tf.contrib.rnn.DropoutWrapper(
-		tf.contrib.rnn.GRUCell(self.num_hidden),
-		self.dropout_keep_prob_placeholder)
-		    for _ in xrange(self.num_layers)])
+		tf.contrib.rnn.DropoutWrapper(
+			tf.contrib.rnn.GRUCell(self.num_hidden), 
+			output_keep_prob=self.dropout_keep_prob_placeholder) 
+				for _ in xrange(self.num_layers)])
         _, state = tf.nn.dynamic_rnn(
                 gru_cell,
-                self.full_embeddings,
+                self.embeddings,
                 sequence_length=self.seq_lens_placeholder,
                 dtype=tf.float64)
 
@@ -128,8 +118,8 @@ class WordPOSPredictor():
 
     def initialize_model(self):
         self.add_placeholders()
-        self.add_embeddings()
-        self.logger.info("Running POS-Word hybrid model...",)
+        self.return_embeddings()
+        self.logger.info("Running baseline...",)
         self.add_prediction_op()
         self.add_loss_op()
         self.add_optimization()
@@ -137,7 +127,7 @@ class WordPOSPredictor():
         self.add_summaries()
 
     def train_on_batch(self, sess, inputs_batch, lens_batch, labels_batch):
-        feed = self.create_feed_dict(inputs=inputs_batch, lens=lens_batch, labels=labels_batch, keep_prob=model_config.dropout_keep_prob)
+        feed = self.create_feed_dict(inputs=inputs_batch, lens=lens_batch, labels=labels_batch, dropout_prob=model_config.dropout_keep_prob)
         _, loss, accuracy, summary = sess.run([self.train_op, self.loss, self.accuracy, self.summary_op], feed_dict=feed)
         return loss, accuracy, summary
 
@@ -159,15 +149,23 @@ class WordPOSPredictor():
         return accuracy, best_score
 
     def eval_dev(self, sess, saver, best_score):
-        batch = make_batches(self.dev_len, self.dev_data)[0]
-	tf.get_variable_scope().reuse_variables()
-        feed = self.create_feed_dict(inputs=batch[0], lens=batch[1], labels=batch[2], keep_prob=1.0)
-        loss, accuracy = sess.run([self.loss, self.accuracy], feed_dict=feed)
-        if accuracy > best_score:
-            best_score = accuracy
-            print("\nNew best score! Saving model in %s" % config.best_checkpoint)
-            saver.save(sess, config.best_checkpoint + '/baseline_lstm')
-        return accuracy, best_score
+        prog = Progbar(target=int(self.dev_len))
+        count = 0
+        total_accuracy = 0.0
+        batches = make_batches(1, self.dev_data)
+        for batch in batches:
+            tf.get_variable_scope().reuse_variables()
+            feed = self.create_feed_dict(inputs=batch[0], lens=batch[1], labels=batch[2], dropout_prob=1.0)
+            loss, accuracy = sess.run([self.loss, self.accuracy], feed_dict=feed)
+            prog.update(count + 1, [("dev loss", loss), ("dev accuracy", accuracy)])
+            total_accuracy += accuracy
+            count += 1
+        final_accuracy = total_accuracy / count
+        if final_accuracy > best_score:
+            best_score = final_accuracy
+            print("\nNew best score! Saving model in %s" % model_config.best_checkpoint)
+            saver.save(sess, model_config.best_checkpoint + '/baseline_lstm')
+        return final_accuracy, best_score
 
     def fit(self, sess, saver, writer, last_step):
         best_dev_score = 0.0
