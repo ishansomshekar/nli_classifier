@@ -67,7 +67,7 @@ class WordPOSPredictor():
         return feed_dict
 
 
-    def add_embeddings(self, word_embedding_shape, pos_embedding_shape, session):
+    def add_embeddings(self, session):
         word_embedding_data = load_embedding_data(model_config.word_embeddings_path)
         pos_embedding_data = load_embedding_data(model_config.pos_embeddings_path)
 
