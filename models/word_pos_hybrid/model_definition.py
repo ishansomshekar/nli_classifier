@@ -49,8 +49,8 @@ class WordPOSPredictor():
 
 
     def add_placeholders(self):
-        self.word_inputs_placeholder = tf.placeholder(tf.int32, shape=(None, self.max_length))
-        self.pos_inputs_placeholder = tf.placeholder(tf.int32, shape=(None, self.max_length))
+        self.word_inputs_placeholder = tf.placeholder(tf.int32, shape=(None, None))
+        self.pos_inputs_placeholder = tf.placeholder(tf.int32, shape=(None, None))
         self.seq_lens_placeholder = tf.placeholder(tf.int32, shape=(None))
         self.labels_placeholder = tf.placeholder(tf.int32, shape=(None, self.num_classes))
 	self.dropout_keep_prob_placeholder = tf.placeholder(tf.float64)
@@ -69,27 +69,35 @@ class WordPOSPredictor():
 
     def add_embeddings(self):
         word_embedding_data = load_embedding_data(model_config.word_embeddings_path)
+
         self.word_embedding_dim = word_embedding_data.shape[1]
-        word_embeddings = tf.Variable(word_embedding_data, trainable=model_config.embeddings_trainable)
+        word_max_seq_len = tf.shape(self.word_inputs_placeholder)[0]
+
+        word_embeddings = tf.Variable(word_embedding_data, trainable=model_config.embeddings_trainable, name="word_embeddings")
         final_word_embeddings = tf.nn.embedding_lookup(word_embeddings, self.word_inputs_placeholder)
-        final_word_embeddings = tf.cast(tf.reshape(final_word_embeddings, (-1, self.max_length, self.word_embedding_dim)), tf.float64)
+        final_word_embeddings = tf.cast(tf.reshape(final_word_embeddings, (-1, word_max_seq_len, self.word_embedding_dim)), tf.float64)
         self.word_embeddings = final_word_embeddings
 
+
         pos_embedding_data = load_embedding_data(model_config.pos_embeddings_path)
+
         self.pos_embedding_dim = pos_embedding_data.shape[1]
-        pos_embeddings = tf.Variable(word_embedding_data, trainable=False)
+        pos_max_seq_len = tf.shape(self.pos_inputs_placeholder)[0]
+
+        pos_embeddings = tf.Variable(word_embedding_data, trainable=False, name="pos_embeddings")
         final_pos_embeddings = tf.nn.embedding_lookup(pos_embeddings, self.pos_inputs_placeholder)
-        final_pos_embeddings = tf.cast(tf.reshape(final_pos_embeddings, (-1, self.max_length, self.pos_embedding_dim)), tf.float64)
+        final_pos_embeddings = tf.cast(tf.reshape(final_pos_embeddings, (-1, pos_max_seq_len, self.pos_embedding_dim)), tf.float64)
         self.pos_embeddings = final_pos_embeddings
         self.full_embeddings = tf.concat([final_word_embeddings, final_pos_embeddings], axis=2)
 
 
     def add_prediction_op(self):
 	gru_cell = tf.contrib.rnn.MultiRNNCell([
-	    tf.contrib.rnn.DropoutWrapper(
+            tf.contrib.rnn.DropoutWrapper(
 		tf.contrib.rnn.GRUCell(self.num_hidden),
 		self.dropout_keep_prob_placeholder)
-		    for _ in xrange(self.num_layers)])
+            for _ in xrange(self.num_layers)])
+
         _, state = tf.nn.dynamic_rnn(
                 gru_cell,
                 self.full_embeddings,
