@@ -57,6 +57,7 @@ class WordPOSPredictor():
 
 
     def create_feed_dict(self, inputs, lens, labels, keep_prob):
+        print inputs
         feed_dict = {
             self.pos_inputs_placeholder : inputs['pos'],
             self.word_inputs_placeholder : inputs['word'],

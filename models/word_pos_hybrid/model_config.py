@@ -6,6 +6,7 @@ from utils.embedding_wrappers.random import RandomEmbeddingWrapper
 from utils.embedding_wrappers.glove import GloveEmbeddingWrapper
 from utils.embedding_wrappers.one_hot import OneHotEmbeddingWrapper
 from utils.embedding_wrappers.char_level import CharLevelEmbeddingWrapper
+from utils.embedding_wrappers.pos import PosEmbeddingWrapper
 
 from utils.data_utils import get_script_path
 
@@ -57,11 +58,12 @@ dropout_keep_prob = 0.5
 
 #
 
-def get_embedding_wrapper():
+def get_embedding_wrappers():
     #return CharLevelEmbeddingWrapper() # for char level NN
     #return GloveEmbeddingWrapper() # for GloVe vector embeddings
-    return OneHotEmbeddingWrapper() # for one-hot word embeddings (warning: slow)
+    #return OneHotEmbeddingWrapper() # for one-hot word embeddings (warning: slow)
     #return RandomEmbeddingWrapper() # for random initialized word embeddings
+    return [RandomEmbeddingWrapper(), PosEmbeddingWrapper()]
 
 embeddings_trainable = False
 

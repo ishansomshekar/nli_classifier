@@ -92,6 +92,15 @@ def pad_sequences(sequences, maxlen=None, dtype=np.float32,
             raise ValueError('Padding type "%s" not understood' % padding)
     return x, lengths, maxlen
 
+def pad_sequences_multi(multi_sequences, maxlen=None, dtype=np.float32,
+                  padding='post', truncating='post', value=0.):
+    res = {}
+
+    for k, dataset in multi_sequences.items():
+        res[k], seq_lens, maxlen = pad_sequences(dataset)
+
+    return res, seq_lens, maxlen
+
 def make_batches(batch_size, data):
     batches = []
     for i in range(0, data['inputs'].shape[0], batch_size):
@@ -103,6 +112,49 @@ def return_files(path):
     return [path+f for f in os.listdir(path) if (not f.startswith('missing_files') and not f.startswith('.'))]
 
 def build_data_partition(paths, embedding_wrapper):
+    if len(embedding_wrappers) > 1:
+        _build_multi_data_partition(paths, embedding_wrappers)
+    else:
+        _build_single_data_partition(paths, embedding_wrappers[0])
+
+
+def _build_multi_data_partition(paths, embedding_wrappers):
+    inputs_in = paths['inputs_in']
+    labels_in = paths['labels_in']
+    inputs_out = paths['inputs_out']
+    seq_lens_out = paths['seq_lens_out']
+    labels_out = paths['labels_out']
+    max_len_out = paths['max_len_out']
+
+    dataset = []
+    for file in return_files(inputs_in):
+        with open(file, 'r') as f:
+            idx_dict = {ew.name: ew.get_indices(f.read()) for ew in embedding_wrappers}
+        dataset.append(idx_dict)
+
+    arr = []
+    with open(labels_in, 'r') as csvfile:
+        reader = csv.reader(csvfile)
+        next(reader, None)
+        for row in reader:
+            arr.append([1 if lang_dict[row[3]] == i else 0 for i in range(len(lang_dict))])
+
+    arr = np.asarray(arr)
+    res, seq_lens, maxlen = pad_sequences_multi(datasets)
+
+    with open(inputs_out, 'wb') as v:
+        pickle.dump(res, v)
+
+    with open(seq_lens_out, 'w') as v:
+        pickle.dump(seq_lens, v)
+
+    with open(labels_out, 'wb') as v:
+        pickle.dump(arr, v)
+
+    with open(max_len_out, 'wb') as v:
+        pickle.dump(maxlen, v)
+
+def _build_single_data_partition(paths, embedding_wrapper):
     inputs_in = paths['inputs_in']
     labels_in = paths['labels_in']
     inputs_out = paths['inputs_out']

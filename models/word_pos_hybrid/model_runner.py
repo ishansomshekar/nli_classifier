@@ -33,19 +33,20 @@ def train_model(train_data, dev_data):
             print('Epoch', epoch, ' - Train score:', epoch_train_scores[epoch], ' - Dev score:', epoch_dev_scores[epoch])
 
 
+
 def prep_data():
-    ensure_dir('checkpoints')
     ensure_dir(model_config.best_checkpoint)
     ensure_dir(model_config.continue_checkpoint)
     ensure_dir(model_config.processed_data_path)
 
-    embedding_wrapper = model_config.get_embedding_wrapper()
-    embedding_wrapper.build_vocab(model_config.vocab_path)
-    embedding_wrapper.process_embeddings(model_config.word_embeddings_path)
+    embedding_wrappers = model_config.get_embedding_wrappers()
+    for ew in embedding_wrappers:
+        ew.build_vocab(model_config.vocab_path)
+        ew.process_embeddings(model_config.word_embeddings_path)
     if not gfile.Exists(model_config.train_paths['inputs_out']) or not gfile.Exists(model_config.dev_paths['inputs_out']):
         print('build data')
-        build_data_partition(model_config.train_paths, embedding_wrapper)
-        build_data_partition(model_config.dev_paths, embedding_wrapper)
+        build_data_partition(model_config.train_paths, embedding_wrappers)
+        build_data_partition(model_config.dev_paths, embedding_wrappers)
 
     train_data = load_data(model_config.train_paths)
     dev_data = load_data(model_config.dev_paths)

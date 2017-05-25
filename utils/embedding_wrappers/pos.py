@@ -24,6 +24,7 @@ def return_dir(path):
 
 class PosEmbeddingWrapper(object):
     def __init__(self):
+        self.name = 'pos'
         self.vocab = None
         self.reverse_vocab = None
         self.embeddings = None
@@ -48,12 +49,10 @@ class PosEmbeddingWrapper(object):
                 with open(file, 'r') as f:
                     for i, line in enumerate(f):
                         pos_tags = self.annotator.annotate_pos(line)
-			"""
                         if len(pos_tags) != len(line.split()):
                             print(pos_tags)
                             print(line.split())
                             assert False
-			"""
 
                         for pos in pos_tags:
                             wordcounter += 1

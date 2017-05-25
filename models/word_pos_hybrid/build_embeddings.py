@@ -28,4 +28,4 @@ if __name__ == '__main__':
     with open(model_config.vocab_path, 'w') as f:
         pickle.dump(word_embedding_wrapper.vocab, f)
         f.close()
-    word_embedding_wrapper.process_embeddings(model_config.embeddings_path)
+    word_embedding_wrapper.process_embeddings(model_config.word_embeddings_path)

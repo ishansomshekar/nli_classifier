@@ -23,6 +23,7 @@ def return_dir(path):
 
 class GloveEmbeddingWrapper(object):
     def __init__(self):
+        self.name = 'word'
         self.vocab = None
         self.reverse_vocab = None
         self.embeddings = None
