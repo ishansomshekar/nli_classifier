@@ -7,6 +7,7 @@ from utils.embedding_wrappers.glove import GloveEmbeddingWrapper
 from utils.embedding_wrappers.one_hot import OneHotEmbeddingWrapper
 from utils.embedding_wrappers.char_level import CharLevelEmbeddingWrapper
 from utils.embedding_wrappers.pos import PosEmbeddingWrapper
+from utils.embedding_wrappers.pos_random import RandomPosEmbeddingWrapper
 
 from utils.data_utils import get_script_path
 
@@ -55,11 +56,12 @@ batch_size = 64
 
 num_hidden = 128
 num_layers = 1
-word_embedding_dim = 43
 
 learning_rate = 1e-3
 l2_rate = 1e-4
 dropout_keep_prob = 0.5
+
+word_embedding_dim = 50
 
 #
 
@@ -70,7 +72,7 @@ def get_embedding_wrappers():
     #return GloveEmbeddingWrapper() # for GloVe vector embeddings
     #return OneHotEmbeddingWrapper() # for one-hot word embeddings (warning: slow)
     #return RandomEmbeddingWrapper() # for random initialized word embeddings
-    return [RandomEmbeddingWrapper(word_embedding_dim), PosEmbeddingWrapper()]
+    return [RandomEmbeddingWrapper(), RandomPosEmbeddingWrapper()]
 
 def get_embedding_paths():
     return [word_embeddings_path, pos_embeddings_path]

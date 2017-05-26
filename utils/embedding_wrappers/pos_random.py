@@ -1,3 +1,4 @@
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -22,13 +23,13 @@ def return_files(path):
 def return_dir(path):
     return [path+f for f in os.listdir(path) if (not f.startswith('.'))]
 
-class PosEmbeddingWrapper(object):
-    def __init__(self):
+class RandomPosEmbeddingWrapper(object):
+    def __init__(self, dim=50):
         self.name = 'pos'
         self.vocab = None
         self.reverse_vocab = None
         self.embeddings = None
-        self.embedding_dim = 50
+        self.embedding_dim = dim
         self.num_tokens = 0
         self.unk = "UNK"
         self.pad = "<PAD>"
@@ -50,11 +51,6 @@ class PosEmbeddingWrapper(object):
                 with open(file, 'r') as f:
                     for i, line in enumerate(f):
                         pos_tags = self.annotator.annotate_pos(line)
-                        if len(pos_tags) != len(line.split()):
-                            print(pos_tags)
-                            print(line.split())
-                            assert False
-
                         for pos in pos_tags:
                             wordcounter += 1
                             if not pos in vocab:
@@ -75,7 +71,7 @@ class PosEmbeddingWrapper(object):
         else:
             self.vocab = pickle.load(open(path, 'r'))
             self.reverse_vocab = None
-            self.num_tokens = len(self.vocab)
+            self.num_tokens = wordcounter
 
 
     def process_embeddings(self, embeddings_path):
@@ -84,11 +80,11 @@ class PosEmbeddingWrapper(object):
         :return:
         """
         if not gfile.Exists(embeddings_path):
-            print("build POS embeddings")
-            embeddings = np.diag(np.ones(len(self.vocab)))
-            np.savez_compressed(embeddings_path, embedding=embeddings)
-            print("saved POS embeddings matrix at: {}".format(embeddings_path))
-            self.embeddings = embeddings
+            print("build Random POS embeddings")
+            random_embeddings = np.random.rand(len(self.vocab), self.embedding_dim)
+            np.savez_compressed(embeddings_path, embedding=random_embeddings)
+            print("saved random POS embeddings matrix at: {}".format(embeddings_path))
+            self.embeddings = random_embeddings
 
     def get_indices(self, text):
         pos_tags = self.annotator.annotate_pos(text)

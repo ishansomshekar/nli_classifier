@@ -22,12 +22,12 @@ def return_dir(path):
     return [path+f for f in os.listdir(path) if (not f.startswith('.'))]
 
 class RandomEmbeddingWrapper(object):
-    def __init__(self):
+    def __init__(self, dim=50):
         self.name = 'word'
         self.vocab = None
         self.reverse_vocab = None
         self.embeddings = None
-        self.embedding_dim = 50
+        self.embedding_dim = dim
         self.num_tokens = 0
         self.unk = "UNK"
         self.pad = "<PAD>"
@@ -93,4 +93,6 @@ class RandomEmbeddingWrapper(object):
             return self.vocab[self.unk]
 
     def get_indices(self, text):
-        return [self.get_value(word) for word in text.split()]
+        words = text.split()
+        indices = [self.get_value(word) for word in text.split()]
+        return indices
