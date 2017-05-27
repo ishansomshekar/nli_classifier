@@ -44,8 +44,8 @@ def prep_data():
     embedding_wrapper.process_embeddings(model_config.embeddings_path)
     if not gfile.Exists(model_config.train_paths['inputs_out']) or not gfile.Exists(model_config.dev_paths['inputs_out']):
         print('build data')
-        build_data_partition(model_config.train_paths, embedding_wrapper)
-        build_data_partition(model_config.dev_paths, embedding_wrapper)
+        build_data_partition(model_config.train_paths, [embedding_wrapper])
+        build_data_partition(model_config.dev_paths, [embedding_wrapper])
 
     train_data = load_data(model_config.train_paths)
     dev_data = load_data(model_config.dev_paths)
