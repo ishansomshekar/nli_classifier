@@ -81,7 +81,7 @@ class RandomPosEmbeddingWrapper(object):
         """
         if not gfile.Exists(embeddings_path):
             print("build Random POS embeddings")
-            random_embeddings = np.random.rand(len(self.vocab), self.embedding_dim)
+            random_embeddings = (np.random.rand(len(self.vocab), self.embedding_dim) - 0.5) * 2
             np.savez_compressed(embeddings_path, embedding=random_embeddings)
             print("saved random POS embeddings matrix at: {}".format(embeddings_path))
             self.embeddings = random_embeddings
