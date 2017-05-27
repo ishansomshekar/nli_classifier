@@ -80,7 +80,8 @@ def get_embedding_paths():
 def get_vocab_paths():
     return [word_vocab_path, pos_vocab_path]
 
-embeddings_trainable = False
+word_embeddings_trainable = True
+pos_embedding_trainable = True
 
 def get_logger():
     logger = logging.getLogger("log_baseline")
