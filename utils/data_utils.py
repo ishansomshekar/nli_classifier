@@ -93,7 +93,7 @@ def pad_sequences(sequences, maxlen=None, dtype=np.float32,
     return x, lengths, maxlen
 
 
-def make_batches(batch_size, data, shuffle=True):
+def make_batches(batch_size, data):
     batches = []
     for i in range(0, data['labels'].shape[0], batch_size):
         inputs = data['inputs'][i:i + batch_size]
