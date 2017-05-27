@@ -53,9 +53,9 @@ log_frequency = 100
 num_epochs = 10
 batch_size = 64
 
-num_hidden = 128
+num_hidden = 512
 num_layers = 1
-word_embedding_dim = 43
+word_embedding_dim = 300
 
 learning_rate = 1e-3
 l2_rate = 1e-4
