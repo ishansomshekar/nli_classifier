@@ -84,7 +84,7 @@ class GloveEmbeddingWrapper(object):
         if not gfile.Exists(embeddings_path):
             print("build glove")
             glove_path = pjoin(module_home, 'data/glove', 'glove.6B.{}d.txt'.format(self.glove_dim))
-            glove = np.zeros((len(self.vocab), self.glove_dim))
+            glove = np.empty((len(self.vocab), self.glove_dim))
             not_found = 0
             found_words = []
             with open(glove_path, 'r') as fh:
