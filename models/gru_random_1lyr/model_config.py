@@ -46,7 +46,7 @@ log_frequency = 100
 num_epochs = 10
 batch_size = 64
 
-num_hidden = 256
+num_hidden = 512
 num_layers = 1
 
 learning_rate = 1e-3
@@ -59,7 +59,7 @@ def get_embedding_wrapper():
     #return CharLevelEmbeddingWrapper() # for char level NN
     #return GloveEmbeddingWrapper() # for GloVe vector embeddings
     #return OneHotEmbeddingWrapper() # for one-hot word embeddings (warning: slow)
-    return RandomEmbeddingWrapper() # for random initialized word embeddings
+    return RandomEmbeddingWrapper(300) # for random initialized word embeddings
 
 embeddings_trainable = True
 
