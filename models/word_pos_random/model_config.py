@@ -51,10 +51,10 @@ log_frequency = 100
 
 # model hyperparameters
 
-num_epochs = 10
+num_epochs = 20
 batch_size = 64
 
-num_hidden = 128
+num_hidden = 512
 num_layers = 1
 
 learning_rate = 1e-3

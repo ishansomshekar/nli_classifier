@@ -8,6 +8,7 @@ import errno
 import sys
 import csv
 import shutil
+from random import shuffle
 
 import numpy as np
 from six.moves.urllib.request import urlretrieve
@@ -20,8 +21,7 @@ Data Utils: holds model independent common utility functions for the task
 
 lang_dict = {
     'HIN' : 0,
-    'ARA' : 1,
-    'JPN' : 2,
+    'ARA' : 1, 'JPN' : 2,
     'SPA' : 3,
     'TUR' : 4,
     'GER' : 5,
@@ -93,11 +93,26 @@ def pad_sequences(sequences, maxlen=None, dtype=np.float32,
     return x, lengths, maxlen
 
 
-def make_batches(batch_size, data):
+def make_batches(batch_size, data, shuffle=True):
     batches = []
     for i in range(0, data['labels'].shape[0], batch_size):
-        batches.append((data['inputs'][i:i + batch_size], data['seq_lens'][i:i + batch_size], data['labels'][i:i + batch_size]))
+        inputs = data['inputs'][i:i + batch_size]
+        seq_lens = data['seq_lens'][i:i + batch_size]
+        labels = data['labels'][i:i + batch_size]
 
+        new_order = np.random.permutation(len(labels))
+
+        #inputs = [inputs[i] for i in new_order]
+        #seq_lens = [seq_lens[i] for i in new_order]
+        #labels = [labels[i] for i in new_order]
+
+        inputs = inputs[new_order]
+        seq_lens = seq_lens[new_order]
+        labels = labels[new_order]
+
+        batches.append((inputs, seq_lens, labels))
+
+    shuffle(batches)
     return batches
 
 def return_files(path):
