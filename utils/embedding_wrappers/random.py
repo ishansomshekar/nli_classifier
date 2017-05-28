@@ -5,11 +5,11 @@ from __future__ import print_function
 import os
 import sys
 import pickle
+from os.path import join as pjoin
 
 from tensorflow.python.platform import gfile
 from tqdm import *
 import numpy as np
-from os.path import join as pjoin
 
 module_home = os.environ['NLI_PATH']
 sys.path.insert(0, module_home)

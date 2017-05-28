@@ -149,17 +149,16 @@ class BaselinePredictor():
         return accuracy, best_score
 
     def eval_dev(self, sess, saver, best_score):
-        prog = Progbar(target=int(self.dev_len))
+        prog = Progbar(target=1)
         count = 0
         total_accuracy = 0.0
-        batches = make_batches(1, self.dev_data)
-        for batch in batches:
-            tf.get_variable_scope().reuse_variables()
-            feed = self.create_feed_dict(inputs=batch[0], lens=batch[1], labels=batch[2], dropout_prob=1.0)
-            loss, accuracy = sess.run([self.loss, self.accuracy], feed_dict=feed)
-            prog.update(count + 1, [("dev loss", loss), ("dev accuracy", accuracy)])
-            total_accuracy += accuracy
-            count += 1
+        batch = make_batches(self.dev_len, self.dev_data)[0]
+        tf.get_variable_scope().reuse_variables()
+        feed = self.create_feed_dict(inputs=batch[0], lens=batch[1], labels=batch[2], dropout_prob=1.0)
+        loss, accuracy = sess.run([self.loss, self.accuracy], feed_dict=feed)
+        prog.update(count + 1, [("dev loss", loss), ("dev accuracy", accuracy)])
+        total_accuracy += accuracy
+        count += 1
         final_accuracy = total_accuracy / count
         if final_accuracy > best_score:
             best_score = final_accuracy
