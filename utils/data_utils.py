@@ -116,10 +116,7 @@ def make_batches(batch_size, data):
     return batches
 
 def return_files(path):
-    return [path+f for f in sorted(os.listdir(path)) if (not f.startswith('missing_files') and not f.startswith('.'))]
-
-def return_dir(path):
-    return [path+f for f in sorted(os.listdir(path)) if (not f.startswith('.'))]
+    return [path+f for f in os.listdir(path) if (not f.startswith('missing_files') and not f.startswith('.'))]
 
 def build_data_partition(paths, embedding_wrappers):
     if len(embedding_wrappers) > 1:
@@ -166,6 +163,8 @@ def _build_multi_data_partition(paths, embedding_wrappers):
             arr.append([1 if lang_dict[row[3]] == i else 0 for i in range(len(lang_dict))])
 
     arr = np.asarray(arr)
+
+    assert(len(seq_lens) == len(labels)
 
     with open(seq_lens_out, 'w') as v:
         pickle.dump(seq_lens, v)
