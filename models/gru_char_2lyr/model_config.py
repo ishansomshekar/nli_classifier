@@ -45,10 +45,10 @@ log_frequency = 1000
 num_epochs = 50
 batch_size = 64
 
-num_hidden = 512
-num_layers = 1
+num_hidden = 256
+num_layers = 2
 
-learning_rate = 5e-4
+learning_rate = 1e-3
 l2_rate = 1e-4
 dropout_keep_prob = 0.5
 

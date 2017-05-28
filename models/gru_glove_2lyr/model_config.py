@@ -45,6 +45,7 @@ log_frequency = 100
 
 num_epochs = 10
 batch_size = 64
+embedding_dim = 300
 
 num_hidden = 256
 num_layers = 1
@@ -57,7 +58,7 @@ dropout_keep_prob = 0.5
 
 def get_embedding_wrapper():
     #return CharLevelEmbeddingWrapper() # for char level NN
-    return GloveEmbeddingWrapper() # for GloVe vector embeddings
+    return GloveEmbeddingWrapper(embedding_dim) # for GloVe vector embeddings
     #return OneHotEmbeddingWrapper() # for one-hot word embeddings (warning: slow)
     #return RandomEmbeddingWrapper() # for random initialized word embeddings
 

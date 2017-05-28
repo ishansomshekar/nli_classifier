@@ -54,9 +54,9 @@ def prep_data():
 
 
 def main():
-    print "Running model, call with --fresh to clear preprocessed data from previous runs"
+    print("Running model, call with --fresh to clear preprocessed data from previous runs")
     if len(sys.argv) > 1 and sys.argv[1] == "--fresh":
-        print "Run with --fresh: clearing previously processed data"
+        print("Run with --fresh: clearing previously processed data")
         clear_data(model_config.processed_data_path)
     train_data, dev_data = prep_data()
     with tf.variable_scope('baseline_model'):
