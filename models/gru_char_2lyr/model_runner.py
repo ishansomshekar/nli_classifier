@@ -44,8 +44,8 @@ def prep_data():
     embedding_wrapper.process_embeddings(model_config.embeddings_path)
     if not gfile.Exists(model_config.train_paths['inputs_out']) or not gfile.Exists(model_config.dev_paths['inputs_out']):
         print('build data')
-        build_data_partition(model_config.train_paths, embedding_wrapper)
-        build_data_partition(model_config.dev_paths, embedding_wrapper)
+        build_data_partition(model_config.train_paths, [embedding_wrapper])
+        build_data_partition(model_config.dev_paths, [embedding_wrapper])
 
     train_data = load_data(model_config.train_paths)
     dev_data = load_data(model_config.dev_paths)
@@ -54,9 +54,9 @@ def prep_data():
 
 
 def main():
-    print "Running model, call with --fresh to clear preprocessed data from previous runs"
+    print("Running model, call with --fresh to clear preprocessed data from previous runs")
     if len(sys.argv) > 1 and sys.argv[1] == "--fresh":
-        print "Run with --fresh: clearing previously processed data"
+        print("Run with --fresh: clearing previously processed data")
         clear_data(model_config.processed_data_path)
     train_data, dev_data = prep_data()
     with tf.variable_scope('baseline_model'):

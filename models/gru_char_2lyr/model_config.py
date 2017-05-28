@@ -42,7 +42,7 @@ log_frequency = 1000
 
 # model hyperparameters
 
-num_epochs = 10
+num_epochs = 50
 batch_size = 64
 
 num_hidden = 256
@@ -60,7 +60,7 @@ def get_embedding_wrapper():
     #return OneHotEmbeddingWrapper() # for one-hot word embeddings (warning: slow)
     #return RandomEmbeddingWrapper() # for random initialized word embeddings
 
-embeddings_trainable = True
+embeddings_trainable = False
 
 def get_logger():
     logger = logging.getLogger("log_baseline")

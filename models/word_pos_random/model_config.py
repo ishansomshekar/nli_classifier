@@ -61,7 +61,7 @@ learning_rate = 1e-3
 l2_rate = 1e-4
 dropout_keep_prob = 0.5
 
-word_embedding_dim = 50
+word_embedding_dim = 300
 
 #
 
@@ -72,7 +72,7 @@ def get_embedding_wrappers():
     #return GloveEmbeddingWrapper() # for GloVe vector embeddings
     #return OneHotEmbeddingWrapper() # for one-hot word embeddings (warning: slow)
     #return RandomEmbeddingWrapper() # for random initialized word embeddings
-    return [RandomEmbeddingWrapper(), RandomPosEmbeddingWrapper()]
+    return [RandomEmbeddingWrapper(word_embedding_dim), RandomPosEmbeddingWrapper()]
 
 def get_embedding_paths():
     return [word_embeddings_path, pos_embeddings_path]

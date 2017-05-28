@@ -13,7 +13,7 @@ sys.path.insert(0, module_home)
 
 from utils.progbar import Progbar
 from utils.data_utils import *
-import model_config
+import  model_config
 
 
 class BaselinePredictor():
@@ -75,19 +75,34 @@ class BaselinePredictor():
 
 
     def add_prediction_op(self):
-        gru_cell = tf.contrib.rnn.MultiRNNCell([
+        fw_cell = tf.contrib.rnn.MultiRNNCell([
             tf.contrib.rnn.DropoutWrapper(
                 tf.contrib.rnn.GRUCell(self.num_hidden),
-                output_keep_prob = self.dropout_keep_prob_placeholder)
+                output_keep_prob=self.dropout_keep_prob_placeholder)
                     for _ in xrange(self.num_layers)])
-        _, state = tf.nn.dynamic_rnn(
-                gru_cell,
+        
+        bw_cell = tf.contrib.rnn.MultiRNNCell([
+            tf.contrib.rnn.DropoutWrapper(
+                tf.contrib.rnn.GRUCell(self.num_hidden),
+                output_keep_prob=self.dropout_keep_prob_placeholder)
+                    for _ in xrange(self.num_layers)])
+
+        outputs, states = tf.nn.bidirectional_dynamic_rnn(
+                fw_cell,
+                bw_cell,
                 self.embeddings,
                 sequence_length=self.seq_lens_placeholder,
                 dtype=tf.float64)
 
+        fw_state = states[0][0]
+        bw_state = states[1][0]
+        output = tf.concat([fw_state, bw_state], 1)
+        print output.get_shape()
+
+
+
         self.logits = layers.fully_connected(
-                inputs = state[-1],
+                inputs = output,
                 num_outputs = self.num_classes,
                 activation_fn = None,
                 weights_initializer = tf.contrib.layers.xavier_initializer(),
@@ -149,16 +164,17 @@ class BaselinePredictor():
         return accuracy, best_score
 
     def eval_dev(self, sess, saver, best_score):
-        prog = Progbar(target=1)
+        prog = Progbar(target=int(self.dev_len))
         count = 0
         total_accuracy = 0.0
-        batch = make_batches(self.dev_len, self.dev_data)[0]
-        tf.get_variable_scope().reuse_variables()
-        feed = self.create_feed_dict(inputs=batch[0], lens=batch[1], labels=batch[2], dropout_prob=1.0)
-        loss, accuracy = sess.run([self.loss, self.accuracy], feed_dict=feed)
-        prog.update(count + 1, [("dev loss", loss), ("dev accuracy", accuracy)])
-        total_accuracy += accuracy
-        count += 1
+        batches = make_batches(1, self.dev_data)
+        for batch in batches:
+            tf.get_variable_scope().reuse_variables()
+            feed = self.create_feed_dict(inputs=batch[0], lens=batch[1], labels=batch[2], dropout_prob=1.0)
+            loss, accuracy = sess.run([self.loss, self.accuracy], feed_dict=feed)
+            prog.update(count + 1, [("dev loss", loss), ("dev accuracy", accuracy)])
+            total_accuracy += accuracy
+            count += 1
         final_accuracy = total_accuracy / count
         if final_accuracy > best_score:
             best_score = final_accuracy
