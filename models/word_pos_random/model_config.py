@@ -51,7 +51,7 @@ log_frequency = 100
 
 # model hyperparameters
 
-num_epochs = 20
+num_epochs = 50
 batch_size = 64
 
 num_hidden = 512

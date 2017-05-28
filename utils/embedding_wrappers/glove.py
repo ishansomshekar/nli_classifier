@@ -14,12 +14,8 @@ from os.path import join as pjoin
 module_home = os.environ['NLI_PATH']
 sys.path.insert(0, module_home)
 
+from utils.data_utils import return_files
 
-def return_files(path):
-    return [path+f for f in os.listdir(path) if (not f.startswith('missing_files') and not f.startswith('.'))]
-
-def return_dir(path):
-    return [path+f for f in os.listdir(path) if (not f.startswith('.'))]
 
 class GloveEmbeddingWrapper(object):
     def __init__(self):
