@@ -22,13 +22,13 @@ def return_dir(path):
     return [path+f for f in os.listdir(path) if (not f.startswith('.'))]
 
 class GloveEmbeddingWrapper(object):
-    def __init__(self):
+    def __init__(self, dim=300):
         self.name = 'word'
         self.vocab = None
         self.reverse_vocab = None
         self.embeddings = None
         self.glove_dir = "FILL GLOVE DIR HERE"
-        self.glove_dim = 50
+        self.glove_dim = dim
         self.size = 4e5
         self.num_tokens = 0
         self.unk = "UNK"
@@ -84,7 +84,7 @@ class GloveEmbeddingWrapper(object):
         if not gfile.Exists(embeddings_path):
             print("build glove")
             glove_path = pjoin(module_home, 'data/glove', 'glove.6B.{}d.txt'.format(self.glove_dim))
-            glove = np.zeros((len(self.vocab), self.glove_dim))
+            glove = np.empty((len(self.vocab), self.glove_dim))
             not_found = 0
             found_words = []
             with open(glove_path, 'r') as fh:
