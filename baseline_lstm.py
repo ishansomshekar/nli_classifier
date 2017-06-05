@@ -25,10 +25,10 @@ logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 t = time.localtime()
 timeString  = time.strftime("%Y%m%d%H%M%S", t)
 train = False
-train_datapath = os.path.join(config.DATA_DIR, 'speech_transcriptions/train/tokenized/')
+train_datapath = os.path.join(config.DATA_DIR, config.dataset + '/train/tokenized/')
 label_datapath = os.path.join(config.DATA_DIR, 'labels/train/labels.train.csv')
 
-dev_datapath = os.path.join(config.DATA_DIR, 'speech_transcriptions/dev/tokenized/')
+dev_datapath = os.path.join(config.DATA_DIR, config.dataset + '/dev/tokenized/')
 dev_label_datapath = os.path.join(config.DATA_DIR, 'labels/dev/labels.dev.csv')
 
 lang_dict = {
@@ -49,11 +49,11 @@ lang_dict = {
 class BaselinePredictor():
     def __init__(self, embedding_wrapper, input_mat, labels, dev_input_mat, dev_labels):
 
-        self.glove_dim = 50
+        self.glove_dim = config.embed_dim
         self.embedding_wrapper = embedding_wrapper
         self.num_epochs = 10
-        # self.lr = 0.005
-        self.lr = 0.01
+        self.lr = 0.006
+        # self.lr = 0.05
         self.inputs_placeholder = None
         self.labels_placeholder = None
         self.input_mat = input_mat
@@ -62,7 +62,7 @@ class BaselinePredictor():
         self.dev_labels = dev_labels
         self.max_length = input_mat.shape[1]
         self.batch_size = 64
-        self.num_hidden = 128
+        self.num_hidden = 256
         self.num_layers = 1
         self.num_classes = 11
         self.loss = 0
@@ -157,7 +157,7 @@ class BaselinePredictor():
             tf.get_variable_scope().reuse_variables()
             feed = self.create_feed_dict(inputs=batch[0], labels=batch[1])
             loss, accuracy = sess.run([self.loss, self.accuracy], feed_dict=feed)
-            # print('accuracy:', accuracy)
+            # print('logits:', preds)
             prog.update(count + 1, [("dev loss", loss), ("dev accuracy", accuracy)])
             total_accuracy += accuracy
             count += 1
@@ -222,7 +222,7 @@ def build_model(embedding_wrapper, input_mat, labels, dev_input_mat, dev_labels)
         tf.get_variable_scope().reuse_variables()
         saver = tf.train.Saver()
         with tf.Session() as session:
-            writer = tf.summary.FileWriter('./graphs/baseline_lstm', session.graph)
+            writer = tf.summary.FileWriter('./graphs/baseline_lstm2', session.graph)
             ckpt = tf.train.get_checkpoint_state(os.path.dirname(config.continue_checkpoint + '/checkpoint'))
             if ckpt and ckpt.model_checkpoint_path:
                 saver.restore(session, ckpt.model_checkpoint_path)
@@ -236,25 +236,27 @@ def build_model(embedding_wrapper, input_mat, labels, dev_input_mat, dev_labels)
 
 def main():
     utils.make_dir('checkpoints')
+    utils.make_dir('checkpoints/' + config.dataset)
     utils.make_dir(config.continue_checkpoint)
     utils.make_dir(config.best_checkpoint)
+    utils.make_dir(config.dataset)
 
     embedding_wrapper = EmbeddingWrapper()
     embedding_wrapper.build_vocab()
     embedding_wrapper.process_glove()
-    if not gfile.Exists(os.getcwd() + '/padded_data.dat'):
+    if not gfile.Exists(os.getcwd() + '/' + config.dataset + '/padded_data.dat'):
         print('build train data')
-        maxlen = build_data(embedding_wrapper, train_datapath, label_datapath, 'padded_data.dat', 'labels.dat')
+        maxlen = build_data(embedding_wrapper, train_datapath, label_datapath, config.dataset + '/padded_data.dat', config.dataset + '/labels.dat')
     try:
-        input_mat = pickle.load(open('padded_data.dat', 'rb'))
-        labels = pickle.load(open('labels.dat', 'rb'))
+        input_mat = pickle.load(open(config.dataset + '/padded_data.dat', 'rb'))
+        labels = pickle.load(open(config.dataset + '/labels.dat', 'rb'))
     except EOFError:
         print('No data')
         return {}
 
-    if not gfile.Exists(os.getcwd() + '/dev_padded_data.dat'):
+    if not gfile.Exists(os.getcwd() + '/' + config.dataset + '/dev_padded_data.dat'):
         print('build dev data')
-        build_data(embedding_wrapper, dev_datapath, dev_label_datapath, 'dev_padded_data.dat', 'dev_labels.dat', maxlen)
+        build_data(embedding_wrapper, dev_datapath, dev_label_datapath, config.dataset + '/dev_padded_data.dat', config.dataset + '/dev_labels.dat', maxlen)
     try:
         dev_input_mat = pickle.load(open('dev_padded_data.dat', 'rb'))
         dev_labels = pickle.load(open('dev_labels.dat', 'rb'))
