@@ -21,7 +21,8 @@ Data Utils: holds model independent common utility functions for the task
 
 lang_dict = {
     'HIN' : 0,
-    'ARA' : 1, 'JPN' : 2,
+    'ARA' : 1,
+    'JPN' : 2,
     'SPA' : 3,
     'TUR' : 4,
     'GER' : 5,
@@ -95,28 +96,22 @@ def pad_sequences(sequences, maxlen=None, dtype=np.float32,
 
 def make_batches(batch_size, data):
     batches = []
-    for i in range(0, data['labels'].shape[0], batch_size):
-        inputs = data['inputs'][i:i + batch_size]
-        seq_lens = data['seq_lens'][i:i + batch_size]
-        labels = data['labels'][i:i + batch_size]
+    new_order = np.random.permutation(data['labels'].shape[0])
+    all_inputs = data['inputs'][new_order]
+    all_lens = data['seq_lens'][new_order]
+    all_labels = data['labels'][new_order]
 
-        new_order = np.random.permutation(len(labels))
 
-        #inputs = [inputs[i] for i in new_order]
-        #seq_lens = [seq_lens[i] for i in new_order]
-        #labels = [labels[i] for i in new_order]
-
-        inputs = inputs[new_order]
-        seq_lens = seq_lens[new_order]
-        labels = labels[new_order]
-
+    for i in range(0, all_labels.shape[0], batch_size):
+        inputs = all_inputs[i:i + batch_size]
+        seq_lens = all_seq_lens[i:i + batch_size]
+        labels = all_labels[i:i + batch_size]
         batches.append((inputs, seq_lens, labels))
 
-    shuffle(batches)
     return batches
 
 def return_files(path):
-    return [path+f for f in os.listdir(path) if (not f.startswith('missing_files') and not f.startswith('.'))]
+    return [path+f for f in sorted(os.listdir(path)) if (not f.startswith('missing_files') and not f.startswith('.'))]
 
 def build_data_partition(paths, embedding_wrappers):
     if len(embedding_wrappers) > 1:
@@ -164,7 +159,7 @@ def _build_multi_data_partition(paths, embedding_wrappers):
 
     arr = np.asarray(arr)
 
-    assert(len(seq_lens) == len(labels)
+    assert(len(seq_lens) == len(labels))
 
     with open(seq_lens_out, 'w') as v:
         pickle.dump(seq_lens, v)
