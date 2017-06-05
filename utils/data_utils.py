@@ -119,8 +119,11 @@ def build_data_partition(paths, embedding_wrappers):
     else:
         _build_single_data_partition(paths, embedding_wrappers[0])
 
+def build_ivec_data_partition(path):
+    return [filename.split('/')[-1].split('.')[0] for filename in return_files(path)]
 
-def _build_multi_data_partition(paths, embedding_wrappers):
+
+def _build_multi_data_partition(paths, embedding_wrappers, ivectors=False):
     inputs_in = paths['inputs_in']
     labels_in = paths['labels_in']
     multi_inputs_out = paths['inputs_out']
@@ -132,8 +135,15 @@ def _build_multi_data_partition(paths, embedding_wrappers):
 
     seq_lens = 0
     max_len = 0
+    ivec_results = []
 
-    for out_path, ew in zip(multi_inputs_out, embedding_wrappers):
+    ew_len = len(embedding_wrappers)
+    if ivectors:
+        ew_len -= 1
+
+    for i in range(ew_len):
+        ew = embedding_wrappers[i]
+        out_path = multi_inputs_out[i]
         dataset = []
         for file in return_files(inputs_in):
             with open(file, 'r') as f:
@@ -151,6 +161,13 @@ def _build_multi_data_partition(paths, embedding_wrappers):
             print("Saved embeddings at %s" % out_path)
 
     arr = []
+    if ivectors:
+        ew = embedding_wrappers[-1]
+        ivecs = [ew.getIndex(filename.split('/')[-1].split('.')[0]) for filename in return_files(path)]
+        full_ivecs = [[ivIdx] * seq_len for ivIdx, seq_len in zip(ivecs, seq_lens)]
+        with open(multi_inputs_out[1], 'w') as f:
+            pickle.dump(full_ivecs, f)
+            print("Saved ivector indices at %s" % multi_inputs_out[-1])
     with open(labels_in, 'r') as csvfile:
         reader = csv.reader(csvfile)
         next(reader, None)
