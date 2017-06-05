@@ -49,16 +49,15 @@ num_classes = 11
 log_frequency = 100
 
 # model hyperparameters
-
-num_epochs = 10
+num_epochs = 200
 batch_size = 64
 
-num_hidden = 512
+num_hidden = 1024
 num_layers = 1
 word_embedding_dim = 300
 
-learning_rate = 1e-3
-l2_rate = 1e-4
+learning_rate = 2e-4
+l2_rate = 4e-3
 dropout_keep_prob = 0.5
 
 #
