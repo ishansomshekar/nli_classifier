@@ -98,7 +98,7 @@ def make_batches(batch_size, data):
     batches = []
     new_order = np.random.permutation(data['labels'].shape[0])
     all_inputs = data['inputs'][new_order]
-    all_lens = data['seq_lens'][new_order]
+    all_seq_lens = data['seq_lens'][new_order]
     all_labels = data['labels'][new_order]
 
 
@@ -113,9 +113,10 @@ def make_batches(batch_size, data):
 def return_files(path):
     return [path+f for f in sorted(os.listdir(path)) if (not f.startswith('missing_files') and not f.startswith('.'))]
 
-def build_data_partition(paths, embedding_wrappers):
+
+def build_data_partition(paths, embedding_wrappers, ivectors=False):
     if len(embedding_wrappers) > 1:
-        _build_multi_data_partition(paths, embedding_wrappers)
+        _build_multi_data_partition(paths, embedding_wrappers, ivectors)
     else:
         _build_single_data_partition(paths, embedding_wrappers[0])
 
@@ -123,7 +124,7 @@ def build_ivec_data_partition(path):
     return [filename.split('/')[-1].split('.')[0] for filename in return_files(path)]
 
 
-def _build_multi_data_partition(paths, embedding_wrappers, ivectors=False):
+def _build_multi_data_partition(paths, embedding_wrappers, ivectors):
     inputs_in = paths['inputs_in']
     labels_in = paths['labels_in']
     multi_inputs_out = paths['inputs_out']
@@ -134,7 +135,7 @@ def _build_multi_data_partition(paths, embedding_wrappers, ivectors=False):
     assert (len(multi_inputs_out) == len(embedding_wrappers))
 
     seq_lens = 0
-    max_len = 0
+    maxlen = 0
     ivec_results = []
 
     ew_len = len(embedding_wrappers)
@@ -163,8 +164,12 @@ def _build_multi_data_partition(paths, embedding_wrappers, ivectors=False):
     arr = []
     if ivectors:
         ew = embedding_wrappers[-1]
-        ivecs = [ew.getIndex(filename.split('/')[-1].split('.')[0]) for filename in return_files(path)]
-        full_ivecs = [[ivIdx] * seq_len for ivIdx, seq_len in zip(ivecs, seq_lens)]
+        ivecs = [ew.getIndex(int(filename.split('/')[-1].split('.')[0])) for filename in return_files(inputs_in)]
+        full_ivecs = np.array([np.array([ivIdx] * maxlen) for ivIdx, seq_len in zip(ivecs, seq_lens)])
+        print("ivecs")
+        print(full_ivecs.shape)
+
+
         with open(multi_inputs_out[1], 'w') as f:
             pickle.dump(full_ivecs, f)
             print("Saved ivector indices at %s" % multi_inputs_out[-1])
@@ -176,7 +181,6 @@ def _build_multi_data_partition(paths, embedding_wrappers, ivectors=False):
 
     arr = np.asarray(arr)
 
-    assert(len(seq_lens) == len(labels))
 
     with open(seq_lens_out, 'w') as v:
         pickle.dump(seq_lens, v)
@@ -242,12 +246,15 @@ def get_script_path():
 def load_data(paths, multi_input=False):
     data = {}
     if multi_input:
+        print("in all inputs")
         all_inputs = []
         for p in paths['inputs_out']:
            inp = pickle.load(open(p, 'rb'))
-           all_inputs.append(inp)
-        final_inputs = [[all_inputs[p][i] for p in range(len(paths['inputs_out']))] for i in range(len(all_inputs[0]))]
-        final_inputs = np.array(final_inputs)
+           all_inputs.append(np.array(inp))
+
+        final_inputs = np.asarray(all_inputs)
+        final_inputs = np.swapaxes(final_inputs, 0, 1)
+
         data['inputs'] = final_inputs
     else:
         data['inputs'] = pickle.load(open(paths['inputs_out'], 'rb'))
