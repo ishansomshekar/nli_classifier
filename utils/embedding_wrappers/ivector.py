@@ -10,6 +10,8 @@ from os.path import join as pjoin
 from tensorflow.python.platform import gfile
 import numpy as np
 
+import json
+
 # module_home = os.environ['NLI_PATH']
 module_home = '/Users/Chip/dev/cs224s/nli_classifier'
 sys.path.insert(0, module_home)
@@ -56,7 +58,7 @@ class IvectorEmbeddingWrapper(object):
         if not gfile.Exists(embeddings_path):
             fullDict = json.load(open(self.data_path))
             embeddings = np.array(fullDict.values())
-            np.savez_compressed(embeddings_path, embedding=embeddings)
+            np.savez_compressed(embeddings_path, embedding=list(embeddings))
             self.embeddings = embeddings
 
     def getIndex(self, speakerId):

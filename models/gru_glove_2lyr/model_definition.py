@@ -163,6 +163,7 @@ class BaselinePredictor():
         if final_accuracy > best_score:
             best_score = final_accuracy
             print("\nNew best score! Saving model in %s" % model_config.best_checkpoint)
+            print("best score:", final_accuracy)
             saver.save(sess, model_config.best_checkpoint + '/baseline_lstm')
         return final_accuracy, best_score
 

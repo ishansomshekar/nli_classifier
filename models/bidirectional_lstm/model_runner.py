@@ -8,8 +8,7 @@ import tensorflow as tf
 from tensorflow.python.platform import gfile
 
 #our imports
-# module_home = os.environ['NLI_PATH']
-module_home = '/Users/Chip/dev/cs224s/nli_classifier'
+module_home = os.environ['NLI_PATH']
 sys.path.insert(0, module_home)
 from utils.data_utils import *
 
@@ -22,7 +21,7 @@ def train_model(train_data, dev_data):
     tf.get_variable_scope().reuse_variables()
     saver = tf.train.Saver()
     with tf.Session() as session:
-        writer = tf.summary.FileWriter(module_home + '/graphs/bidirectional_lstm', session.graph)
+        writer = tf.summary.FileWriter(model_config.graph_dir, session.graph)
         ckpt = tf.train.get_checkpoint_state(os.path.dirname(model_config.continue_checkpoint + '/checkpoint'))
         if ckpt and ckpt.model_checkpoint_path:
             saver.restore(session, ckpt.model_checkpoint_path)

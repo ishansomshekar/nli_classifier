@@ -7,6 +7,8 @@ os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 import tensorflow as tf
 from tensorflow.python.platform import gfile
 
+import json
+
 #our imports
 module_home = os.environ['NLI_PATH']
 sys.path.insert(0, module_home)
@@ -59,9 +61,10 @@ def prep_data():
         build_data_partition(model_config.dev_paths, embedding_wrappers, True)
 
     train_data = load_data(model_config.train_paths, model_config.multi_input)
+    print(type(train_data['inputs']))
     dev_data = load_data(model_config.dev_paths, model_config.multi_input)
-    print("Train data inputs0 max: %d" % np.max(train_data['inputs'][:,0,:]))
-    print("Train data inputs1 max: %d" % np.max(train_data['inputs'][:,1,:]))
+    # print("Train data inputs0 max: %d" % np.max(train_data['inputs'][:,0,:]))
+    # print("Train data inputs1 max: %d" % np.max(train_data['inputs'][:,1,:]))
 
     return train_data, dev_data
 

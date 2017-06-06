@@ -104,7 +104,7 @@ def make_batches(batch_size, data):
 
     for i in range(0, all_labels.shape[0], batch_size):
         inputs = all_inputs[i:i + batch_size]
-        seq_lens = all_lens[i:i + batch_size]
+        seq_lens = all_seq_lens[i:i + batch_size]
         labels = all_labels[i:i + batch_size]
         batches.append((inputs, seq_lens, labels))
 
@@ -169,7 +169,7 @@ def _build_multi_data_partition(paths, embedding_wrappers, ivectors):
         print(full_ivecs.shape)
 
 
-        with open(multi_inputs_out[1], 'w') as f:
+        with open(multi_inputs_out[1], 'wb') as f:
             pickle.dump(full_ivecs, f)
             print("Saved ivector indices at %s" % multi_inputs_out[-1])
     with open(labels_in, 'r') as csvfile:
@@ -181,7 +181,7 @@ def _build_multi_data_partition(paths, embedding_wrappers, ivectors):
     arr = np.asarray(arr)
 
 
-    with open(seq_lens_out, 'w') as v:
+    with open(seq_lens_out, 'wb') as v:
         pickle.dump(seq_lens, v)
 
     with open(labels_out, 'wb') as v:

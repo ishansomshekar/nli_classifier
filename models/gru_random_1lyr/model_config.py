@@ -57,7 +57,6 @@ learning_rate = 2e-5
 l2_rate = 1e-4
 dropout_keep_prob = 0.6
 
-gru_random_1lyr_
 model_all = 'gru_random_1lyr_' + str(learning_rate) + '_l2_' + str(l2_rate) + '_drop_' + str(dropout_keep_prob)
 best_checkpoint = os.path.join(module_home, 'checkpoints/' + model_all + '_best')
 continue_checkpoint = os.path.join(module_home, 'checkpoints/' + model_all)

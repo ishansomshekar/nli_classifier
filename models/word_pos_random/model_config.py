@@ -15,7 +15,7 @@ from utils.data_utils import get_script_path
 
 processed_data_path = os.path.join(get_script_path(), 'processed/')
 best_checkpoint = os.path.join(module_home, 'checkpoints/word_pos_random_best')
-continue_checkpoint = os.path.join(module_home, 'checkpoints/word_pos_random')
+# continue_checkpoint = os.path.join(module_home, 'checkpoints/word_pos_random')
 
 logs_path = os.path.join(processed_data_path, './tf_log')
 
@@ -54,16 +54,21 @@ log_frequency = 100
 num_epochs = 50
 batch_size = 64
 
-num_hidden = 512
+num_hidden = 256
 num_layers = 1
 
 learning_rate = 1e-3
 l2_rate = 1e-4
 dropout_keep_prob = 0.5
 
-word_embedding_dim = 300
+word_embedding_dim = 100
 
-#
+wrap = 'glove'
+
+model_all = 'word_pos_random' + str(learning_rate) + '_l2_' + str(l2_rate) + '_drop_' + str(dropout_keep_prob) + '_layers_' + str(num_layers) + '_n_hidden_' + str(num_hidden) + '_dim_' + str(word_embedding_dim) + '_' + wrap
+best_checkpoint = os.path.join(module_home, 'checkpoints/' + model_all + '_best')
+continue_checkpoint = os.path.join(module_home, 'checkpoints/' + model_all)
+graph_dir = os.path.join(module_home, 'graphs/' + model_all)
 
 multi_input = True
 
@@ -72,6 +77,8 @@ def get_embedding_wrappers():
     #return GloveEmbeddingWrapper() # for GloVe vector embeddings
     #return OneHotEmbeddingWrapper() # for one-hot word embeddings (warning: slow)
     #return RandomEmbeddingWrapper() # for random initialized word embeddings
+    if wrap == 'glove':
+        return [GloveEmbeddingWrapper(word_embedding_dim), RandomPosEmbeddingWrapper()]
     return [RandomEmbeddingWrapper(word_embedding_dim), RandomPosEmbeddingWrapper()]
 
 def get_embedding_paths():

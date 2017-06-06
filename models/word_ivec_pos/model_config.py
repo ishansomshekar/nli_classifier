@@ -59,7 +59,7 @@ log_frequency = 100
 num_epochs = 10
 batch_size = 64
 
-num_hidden = 512
+num_hidden = 256
 num_layers = 1
 word_embedding_dim = 100
 
@@ -67,7 +67,7 @@ learning_rate = 1e-4
 l2_rate = 1e-4
 dropout_keep_prob = 0.6
 
-model_all = 'word_ivec_pos_' + str(learning_rate) + '_l2_' + str(l2_rate) + '_drop_' + str(dropout_keep_prob)
+model_all = 'word_ivec_pos_' + str(learning_rate) + '_l2_' + str(l2_rate) + '_drop_' + str(dropout_keep_prob) + '_layers_' + str(num_layers) + '_n_hidden_' + str(num_hidden) + '_dim_' + str(word_embedding_dim)
 best_checkpoint = os.path.join(module_home, 'checkpoints/' + model_all + '_best')
 continue_checkpoint = os.path.join(module_home, 'checkpoints/' + model_all)
 graph_dir = os.path.join(module_home, 'graphs/' + model_all)

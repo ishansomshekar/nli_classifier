@@ -21,7 +21,7 @@ def train_model(train_data, dev_data):
         model.initialize_model(session)
         tf.get_variable_scope().reuse_variables()
         saver = tf.train.Saver()
-        writer = tf.summary.FileWriter(module_home + '/graphs/word_pos_random', session.graph)
+        writer = tf.summary.FileWriter(model_config.graph_dir, session.graph)
         ckpt = tf.train.get_checkpoint_state(os.path.dirname(model_config.continue_checkpoint + '/checkpoint'))
         if ckpt and ckpt.model_checkpoint_path:
             saver.restore(session, ckpt.model_checkpoint_path)
@@ -67,9 +67,9 @@ def prep_data():
 
 
 def main():
-    print "Running model, call with --fresh to clear preprocessed data from previous runs"
+    print("Running model, call with --fresh to clear preprocessed data from previous runs")
     if len(sys.argv) > 1 and sys.argv[1] == "--fresh":
-        print "Run with --fresh: clearing previously processed data"
+        print("Run with --fresh: clearing previously processed data")
         clear_data(model_config.processed_data_path)
     print("Prepping data")
     train_data, dev_data = prep_data()

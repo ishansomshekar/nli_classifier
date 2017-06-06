@@ -8,8 +8,7 @@ import tensorflow as tf
 import tensorflow.contrib.layers as layers
 
 #our imports
-# module_home = os.environ['NLI_PATH']
-module_home = '/Users/Chip/dev/cs224s/nli_classifier'
+module_home = os.environ['NLI_PATH']
 sys.path.insert(0, module_home)
 
 from utils.progbar import Progbar
