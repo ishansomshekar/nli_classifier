@@ -9,7 +9,8 @@ from utils.data_utils import ensure_dir
 
 from utils.embedding_wrappers.glove import GloveEmbeddingWrapper
 from utils.embedding_wrappers.one_hot import OneHotEmbeddingWrapper
-from utils.embedding_wrappers.pos import PosEmbeddingWrapper
+# from utils.embedding_wrappers.pos import PosEmbeddingWrapper
+from utils.embedding_wrappers.ivector import IvectorEmbeddingWrapper
 
 import model_config
 
