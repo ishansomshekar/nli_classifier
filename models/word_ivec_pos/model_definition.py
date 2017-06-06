@@ -22,7 +22,7 @@ class WordPOSPredictor():
         self.logger = model_config.get_logger()
 
         self.word_inputs_placeholder = None
-        self.pos_inputs_placeholder = None
+        # self.pos_inputs_placeholder = None
         self.ivec_inputs_placeholder = None
         self.seq_lens_placeholder = None
         self.labels_placeholder = None
@@ -36,6 +36,7 @@ class WordPOSPredictor():
             self.train_len = self.train_data['inputs'].shape[0]
         else:
             self.train_len = self.train_data['inputs'].shape[0]
+        
         self.dev_len = self.dev_data['inputs'].shape[0]
 
         self.num_classes = model_config.num_classes
@@ -53,35 +54,36 @@ class WordPOSPredictor():
 
 
     def add_placeholders(self):
-        self.word_inputs_placeholder = tf.placeholder(tf.int32, shape=(None, None))
-        self.pos_inputs_placeholder = tf.placeholder(tf.int32, shape=(None, None))
-        self.ivec_inputs_placeholder = tf.placeholder(tf.int32, shape=(None, None))
-        self.seq_lens_placeholder = tf.placeholder(tf.int32, shape=(None))
-        self.labels_placeholder = tf.placeholder(tf.int32, shape=(None, self.num_classes))
-        self.dropout_keep_prob_placeholder = tf.placeholder(tf.float64)
+        self.word_inputs_placeholder = tf.placeholder(tf.int32, shape=(None, None), name="word_inputs")
+        # self.pos_inputs_placeholder = tf.placeholder(tf.int32, shape=(None, None))
+        self.ivec_inputs_placeholder = tf.placeholder(tf.int32, shape=(None, None), name="ivec_inputs")
+        self.seq_lens_placeholder = tf.placeholder(tf.int32, shape=(None), name="seq_lens")
+        self.labels_placeholder = tf.placeholder(tf.int32, shape=(None, self.num_classes), name="labels")
+        self.dropout_keep_prob_placeholder = tf.placeholder(tf.float64, name='dropout')
 
 
     def create_feed_dict(self, inputs, lens, labels, keep_prob):
         feed_dict = {
             self.word_inputs_placeholder : inputs[:, 0, :],
-            self.pos_inputs_placeholder : inputs[:, 1, :],
-            self.ivec_inputs_placeholder : inputs[:, 2, :],
+            # self.pos_inputs_placeholder : inputs[:, 1, :],
+            self.ivec_inputs_placeholder : inputs[:, 1, :],
             self.seq_lens_placeholder: lens,
             self.labels_placeholder : labels,
 	        self.dropout_keep_prob_placeholder : keep_prob,
             self.word_embedding_placeholder: self.word_embedding_data,
-            self.pos_embedding_placeholder: self.pos_embedding_data,
+            self.ivec_embedding_placeholder : self.ivec_embedding_data
+            # self.pos_embedding_placeholder: self.pos_embedding_data,
         }
         return feed_dict
 
 
     def add_embeddings(self, session):
         self.word_embedding_data = load_embedding_data(model_config.word_embeddings_path).astype(float)
-        self.pos_embedding_data = load_embedding_data(model_config.pos_embeddings_path).astype(float)
+        # self.pos_embedding_data = load_embedding_data(model_config.pos_embeddings_path).astype(float)
         self.ivec_embedding_data = load_embedding_data(model_config.ivec_embeddings_path).astype(float)
         
         word_embeddings = tf.Variable(tf.constant(0.0, shape=self.word_embedding_data.shape), name="word_embeddings", trainable=model_config.embeddings_trainable)
-        self.word_embedding_placeholder = tf.placeholder(tf.float32, self.word_embedding_data.shape)
+        self.word_embedding_placeholder = tf.placeholder(tf.float32, self.word_embedding_data.shape, name="word_embedding")
         word_embedding_init = word_embeddings.assign(self.word_embedding_placeholder)
         word_embedding_dim = self.word_embedding_data.shape[1]
         word_max_seq_len = tf.shape(self.word_inputs_placeholder)[1]
@@ -91,18 +93,18 @@ class WordPOSPredictor():
         word_embeddings = tf.cast(tf.reshape(word_embeddings_lookup, (-1, word_max_seq_len, word_embedding_dim)), tf.float64)
 
 
-        pos_embeddings = tf.Variable(tf.constant(0.0, shape=self.pos_embedding_data.shape), name="pos_embeddings", trainable=False)
-        self.pos_embedding_placeholder = tf.placeholder(tf.float32, self.pos_embedding_data.shape)
-        pos_embedding_init = pos_embeddings.assign(self.pos_embedding_placeholder)
-        pos_embedding_dim = self.pos_embedding_data.shape[1]
-        pos_max_seq_len = tf.shape(self.pos_inputs_placeholder)[1]
+        # pos_embeddings = tf.Variable(tf.constant(0.0, shape=self.pos_embedding_data.shape), name="pos_embeddings", trainable=False)
+        # self.pos_embedding_placeholder = tf.placeholder(tf.float32, self.pos_embedding_data.shape)
+        # pos_embedding_init = pos_embeddings.assign(self.pos_embedding_placeholder)
+        # pos_embedding_dim = self.pos_embedding_data.shape[1]
+        # pos_max_seq_len = tf.shape(self.pos_inputs_placeholder)[1]
 
-        pos_embeddings_lookup = tf.nn.embedding_lookup(self.pos_embedding_placeholder, self.pos_inputs_placeholder)
-        pos_embeddings = tf.cast(tf.reshape(pos_embeddings_lookup, (-1, pos_max_seq_len, pos_embedding_dim)), tf.float64)
+        # pos_embeddings_lookup = tf.nn.embedding_lookup(self.pos_embedding_placeholder, self.pos_inputs_placeholder)
+        # pos_embeddings = tf.cast(tf.reshape(pos_embeddings_lookup, (-1, pos_max_seq_len, pos_embedding_dim)), tf.float64)
 
 
-        ivec_embeddings = tf.Variable(tf.constant(0.0, shape=self.ivec_embeddings_data.shape), name="ivec_embeddings", trainable=False)
-        self.ivec_embedding_placeholder = tf.placeholder(tf.float32, self.ivec_embedding_data.shape)
+        ivec_embeddings = tf.Variable(tf.constant(0.0, shape=self.ivec_embedding_data.shape), name="ivec_embeddings", trainable=False)
+        self.ivec_embedding_placeholder = tf.placeholder(tf.float32, self.ivec_embedding_data.shape, name='ivec_embedding')
         ivec_embedding_init = ivec_embeddings.assign(self.ivec_embedding_placeholder)
         ivec_embedding_dim = self.ivec_embedding_data.shape[1]
         ivec_max_seq_len = tf.shape(self.ivec_inputs_placeholder)[1]
@@ -112,15 +114,15 @@ class WordPOSPredictor():
 
 
 
-        self.full_embeddings = tf.concat([word_embeddings, pos_embeddings, ivec_embeddings], axis=2)
+        self.full_embeddings = tf.concat([word_embeddings, ivec_embeddings], axis=2)
 
 
     def add_prediction_op(self):
 	gru_cell = tf.contrib.rnn.MultiRNNCell([
-            tf.contrib.rnn.DropoutWrapper(
-		tf.contrib.rnn.GRUCell(self.num_hidden),
-		self.dropout_keep_prob_placeholder)
-            for _ in xrange(self.num_layers)])
+        tf.contrib.rnn.DropoutWrapper(
+            tf.contrib.rnn.GRUCell(self.num_hidden),
+            output_keep_prob=self.dropout_keep_prob_placeholder)
+                for _ in xrange(self.num_layers)])
 
         _, state = tf.nn.dynamic_rnn(
                 gru_cell,
@@ -161,7 +163,7 @@ class WordPOSPredictor():
     def initialize_model(self, session):
         self.add_placeholders()
         self.add_embeddings(session)
-        self.logger.info("Running POS-Word hybrid model...",)
+        self.logger.info("Running IVEC-Word hybrid model...",)
         self.add_prediction_op()
         self.add_loss_op()
         self.add_optimization()
