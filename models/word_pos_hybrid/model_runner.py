@@ -21,7 +21,7 @@ def train_model(train_data, dev_data):
         model.initialize_model(session)
         tf.get_variable_scope().reuse_variables()
         saver = tf.train.Saver()
-        writer = tf.summary.FileWriter('./graphs/word_pos', session.graph)
+        writer = tf.summary.FileWriter(module_home + '/graphs/word_pos_hybrid', session.graph)
         ckpt = tf.train.get_checkpoint_state(os.path.dirname(model_config.continue_checkpoint + '/checkpoint'))
         if ckpt and ckpt.model_checkpoint_path:
             saver.restore(session, ckpt.model_checkpoint_path)

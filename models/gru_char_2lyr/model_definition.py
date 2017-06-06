@@ -8,7 +8,8 @@ import tensorflow as tf
 import tensorflow.contrib.layers as layers
 
 #our imports
-module_home = os.environ['NLI_PATH']
+# module_home = os.environ['NLI_PATH']
+module_home = '/Users/Chip/dev/cs224s/nli_classifier'
 sys.path.insert(0, module_home)
 
 from utils.progbar import Progbar
@@ -79,7 +80,7 @@ class BaselinePredictor():
             [tf.contrib.rnn.DropoutWrapper(
                 tf.contrib.rnn.GRUCell(self.num_hidden),
                 output_keep_prob = self.dropout_keep_prob_placeholder)
-                    for _ in xrange(self.num_layers)])
+                    for _ in range(self.num_layers)])
         _, state = tf.nn.dynamic_rnn(
                 gru_cell,
                 self.embeddings,

@@ -13,8 +13,8 @@ from utils.data_utils import get_script_path
 # data
 
 processed_data_path = os.path.join(get_script_path(), 'processed/')
-best_checkpoint = os.path.join(processed_data_path, 'checkpoints/best')
-continue_checkpoint = os.path.join(processed_data_path, 'checkpoints/run1')
+best_checkpoint = os.path.join(module_home, 'checkpoints/word_pos_hybrid_best')
+continue_checkpoint = os.path.join(module_home, 'checkpoints/word_pos_hybrid')
 
 logs_path = os.path.join(processed_data_path, './tf_log')
 

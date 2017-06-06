@@ -12,8 +12,8 @@ from utils.data_utils import get_script_path
 # data
 processed_data_path = os.path.join(get_script_path(), 'processed/')
 
-best_checkpoint = os.path.join(processed_data_path, 'checkpoints/best')
-continue_checkpoint = os.path.join(processed_data_path, 'checkpoints/run')
+# best_checkpoint = os.path.join(module_home, 'checkpoints/gru_random_2lyr_best')
+# continue_checkpoint = os.path.join(module_home, 'checkpoints/gru_random_2lyr')
 
 logs_path = os.path.join(processed_data_path, './tf_log')
 
@@ -46,20 +46,26 @@ log_frequency = 100
 num_epochs = 10
 batch_size = 64
 
-num_hidden = 512
+num_hidden = 256
 num_layers = 1
 
-learning_rate = 1e-3
+learning_rate = 1e-4
 l2_rate = 1e-4
-dropout_keep_prob = 0.5
+dropout_keep_prob = 0.6
 
-#
+model_all = 'gru_random_2lyr_lr_' + str(learning_rate) + '_l2_' + str(l2_rate) + '_drop_' + str(dropout_keep_prob) + '_layers_' + str(num_layers) + '_n_hidden_' + str(num_hidden)
+best_checkpoint = os.path.join(module_home, 'checkpoints/' + model_all + '_best')
+continue_checkpoint = os.path.join(module_home, 'checkpoints/' + model_all)
+graph_dir = os.path.join(module_home, 'graphs/' + model_all)
 
-def get_embedding_wrapper():
+# best_checkpoint = os.path.join(module_home, 'checkpoints/gru_random_2lyr_' + str(learning_rate) + '_l2_' + str(l2_rate) + '_drop_' + str(dropout_keep_prob) + '_best')
+# continue_checkpoint = os.path.join(module_home, 'checkpoints/gru_random_2lyr_' + str(learning_rate) + '_l2_' + str(l2_rate) + '_drop_' + str(dropout_keep_prob))
+
+def get_embedding_wrappers():
     #return CharLevelEmbeddingWrapper() # for char level NN
     #return GloveEmbeddingWrapper() # for GloVe vector embeddings
     #return OneHotEmbeddingWrapper() # for one-hot word embeddings (warning: slow)
-    return RandomEmbeddingWrapper() # for random initialized word embeddings
+    return [RandomEmbeddingWrapper()] # for random initialized word embeddings
 
 embeddings_trainable = True
 

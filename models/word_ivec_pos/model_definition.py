@@ -68,7 +68,7 @@ class WordPOSPredictor():
             self.ivec_inputs_placeholder : inputs[:, 2, :],
             self.seq_lens_placeholder: lens,
             self.labels_placeholder : labels,
-	        self.dropout_keep_prob_placeholder : keep_prob,
+            self.dropout_keep_prob_placeholder : keep_prob,
             self.word_embedding_placeholder: self.word_embedding_data,
             self.pos_embedding_placeholder: self.pos_embedding_data,
         }
@@ -116,12 +116,11 @@ class WordPOSPredictor():
 
 
     def add_prediction_op(self):
-	gru_cell = tf.contrib.rnn.MultiRNNCell([
-            tf.contrib.rnn.DropoutWrapper(
-		tf.contrib.rnn.GRUCell(self.num_hidden),
-		self.dropout_keep_prob_placeholder)
-            for _ in xrange(self.num_layers)])
-
+        gru_cell = tf.contrib.rnn.MultiRNNCell([
+                tf.contrib.rnn.DropoutWrapper(
+            tf.contrib.rnn.GRUCell(self.num_hidden),
+            self.dropout_keep_prob_placeholder)
+                for _ in range(self.num_layers)])
         _, state = tf.nn.dynamic_rnn(
                 gru_cell,
                 self.full_embeddings,
@@ -193,7 +192,7 @@ class WordPOSPredictor():
     def eval_dev(self, sess, saver, best_score):
         prog = Progbar(target=1)
         batch = make_batches(self.dev_len, self.dev_data)[0]
-	tf.get_variable_scope().reuse_variables()
+        tf.get_variable_scope().reuse_variables()
         feed = self.create_feed_dict(inputs=batch[0], lens=batch[1], labels=batch[2], keep_prob=1.0)
         loss, accuracy = sess.run([self.loss, self.accuracy], feed_dict=feed)
         prog.update(1, [("dev loss", loss), ("accuracy", accuracy)])

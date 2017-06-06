@@ -8,7 +8,8 @@ import tensorflow as tf
 import tensorflow.contrib.layers as layers
 
 #our imports
-module_home = os.environ['NLI_PATH']
+# module_home = os.environ['NLI_PATH']
+module_home = '/Users/Chip/dev/cs224s/nli_classifier'
 sys.path.insert(0, module_home)
 
 from utils.progbar import Progbar
@@ -79,13 +80,13 @@ class BaselinePredictor():
             tf.contrib.rnn.DropoutWrapper(
                 tf.contrib.rnn.GRUCell(self.num_hidden),
                 output_keep_prob=self.dropout_keep_prob_placeholder)
-                    for _ in xrange(self.num_layers)])
+                    for _ in range(self.num_layers)])
         
         bw_cell = tf.contrib.rnn.MultiRNNCell([
             tf.contrib.rnn.DropoutWrapper(
                 tf.contrib.rnn.GRUCell(self.num_hidden),
                 output_keep_prob=self.dropout_keep_prob_placeholder)
-                    for _ in xrange(self.num_layers)])
+                    for _ in range(self.num_layers)])
 
         outputs, states = tf.nn.bidirectional_dynamic_rnn(
                 fw_cell,
@@ -97,7 +98,7 @@ class BaselinePredictor():
         fw_state = states[0][0]
         bw_state = states[1][0]
         output = tf.concat([fw_state, bw_state], 1)
-        print output.get_shape()
+        print(output.get_shape())
 
 
 
@@ -160,7 +161,7 @@ class BaselinePredictor():
             if accuracy > best_score:
                 best_score = accuracy
             if (index + last_step + 1) % model_config.log_frequency == 0:
-                saver.save(sess, model_config.continue_checkpoint + '/baseline_lstm', index + last_step)
+                saver.save(sess, model_config.continue_checkpoint + '/bidirectional_lstm', index + last_step)
         return accuracy, best_score
 
     def eval_dev(self, sess, saver, best_score):

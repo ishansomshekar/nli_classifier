@@ -1,6 +1,7 @@
 import logging
 import os
-module_home = os.environ['NLI_PATH']
+# module_home = os.environ['NLI_PATH']
+module_home = '/Users/Chip/dev/cs224s/nli_classifier'
 
 from utils.embedding_wrappers.random import RandomEmbeddingWrapper
 from utils.embedding_wrappers.glove import GloveEmbeddingWrapper
@@ -12,8 +13,8 @@ from utils.data_utils import get_script_path
 # data
 processed_data_path = os.path.join(get_script_path(), 'processed/')
 
-best_checkpoint = os.path.join(processed_data_path, 'checkpoints/best')
-continue_checkpoint = os.path.join(processed_data_path, 'checkpoints/run')
+# best_checkpoint = os.path.join(module_home, 'checkpoints/gru_glove_2lyr_best')
+# continue_checkpoint = os.path.join(module_home, 'checkpoints/gru_glove_2lyr')
 
 logs_path = os.path.join(processed_data_path, './tf_log')
 
@@ -39,22 +40,31 @@ dev_paths = {
         }
 
 num_classes = 11
-log_frequency = 100
+log_frequency = 1
 
 # model hyperparameters
 
 num_epochs = 10
 batch_size = 64
-embedding_dim = 300
+embedding_dim = 100
 
 num_hidden = 256
 num_layers = 1
 
-learning_rate = 1e-3
-l2_rate = 1e-4
-dropout_keep_prob = 0.5
+# learning_rate = 1e-3
+# l2_rate = 1e-4
+# dropout_keep_prob = 0.5
 
-#
+learning_rate = 1e-4
+l2_rate = 1e-3
+dropout_keep_prob = 0.6
+
+model_all = 'gru_glove_2lyr_' + str(learning_rate) + '_l2_' + str(l2_rate) + '_drop_' + str(dropout_keep_prob) + '_layers_' + str(num_layers) + '_n_hidden_' + str(num_hidden) + '_dim_' + str(embedding_dim)
+best_checkpoint = os.path.join(module_home, 'checkpoints/' + model_all + '_best')
+continue_checkpoint = os.path.join(module_home, 'checkpoints/' + model_all)
+graph_dir = os.path.join(module_home, 'graphs/' + model_all)
+# best_checkpoint = os.path.join(module_home, 'checkpoints/gru_glove_2lyr_' + str(learning_rate) + '_l2_' + str(l2_rate) + '_drop_' + str(dropout_keep_prob) + '_best')
+# continue_checkpoint = os.path.join(module_home, 'checkpoints/gru_glove_2lyr_' + str(learning_rate) + '_l2_' + str(l2_rate) + '_drop_' + str(dropout_keep_prob))
 
 def get_embedding_wrapper():
     #return CharLevelEmbeddingWrapper() # for char level NN

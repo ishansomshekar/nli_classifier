@@ -104,7 +104,7 @@ def make_batches(batch_size, data):
 
     for i in range(0, all_labels.shape[0], batch_size):
         inputs = all_inputs[i:i + batch_size]
-        seq_lens = all_seq_lens[i:i + batch_size]
+        seq_lens = all_lens[i:i + batch_size]
         labels = all_labels[i:i + batch_size]
         batches.append((inputs, seq_lens, labels))
 
@@ -113,11 +113,11 @@ def make_batches(batch_size, data):
 def return_files(path):
     return [path+f for f in sorted(os.listdir(path)) if (not f.startswith('missing_files') and not f.startswith('.'))]
 
-def build_data_partition(paths, embedding_wrappers):
+def build_data_partition(paths, embedding_wrappers, ivectors=False):
     if len(embedding_wrappers) > 1:
-        _build_multi_data_partition(paths, embedding_wrappers)
+        _build_multi_data_partition(paths, embedding_wrappers, ivectors)
     else:
-        _build_single_data_partition(paths, embedding_wrappers[0])
+        _build_single_data_partition(paths, embedding_wrappers[0], ivectors)
 
 def build_ivec_data_partition(path):
     return [filename.split('/')[-1].split('.')[0] for filename in return_files(path)]
@@ -215,7 +215,7 @@ def _build_single_data_partition(paths, embedding_wrapper):
     with open(inputs_out, 'wb') as v:
         pickle.dump(res, v)
 
-    with open(seq_lens_out, 'w') as v:
+    with open(seq_lens_out, 'wb') as v:
         pickle.dump(seq_lens, v)
 
     with open(labels_out, 'wb') as v:

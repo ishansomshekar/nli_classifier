@@ -1,6 +1,7 @@
 import logging
 import os
-module_home = os.environ['NLI_PATH']
+# module_home = os.environ['NLI_PATH']
+module_home = '/Users/Chip/dev/cs224s/nli_classifier'
 
 from utils.embedding_wrappers.random import RandomEmbeddingWrapper
 from utils.embedding_wrappers.glove import GloveEmbeddingWrapper
@@ -11,9 +12,6 @@ from utils.data_utils import get_script_path
 
 # data
 processed_data_path = os.path.join(get_script_path(), 'processed/')
-
-best_checkpoint = os.path.join(processed_data_path, 'checkpoints/best')
-continue_checkpoint = os.path.join(processed_data_path, 'checkpoints/run')
 
 logs_path = os.path.join(processed_data_path, './tf_log')
 
@@ -49,10 +47,20 @@ batch_size = 64
 num_hidden = 256
 num_layers = 1
 
+# original 1e-4
+# l2_rate 1e-4
+# dropout_keep_prob = 0.5
 learning_rate = 1e-4
-l2_rate = 1e-4
-dropout_keep_prob = 0.5
+l2_rate = 1e-3
+dropout_keep_prob = 0.6
 
+model_all = 'bidrectional_lstm_lr_' + str(learning_rate) + '_l2_' + str(l2_rate) + '_drop_' + str(dropout_keep_prob) + '_layers_' + str(num_layers) + '_n_hidden_' + str(num_hidden)
+best_checkpoint = os.path.join(module_home, 'checkpoints/' + model_all + '_best')
+continue_checkpoint = os.path.join(module_home, 'checkpoints/' + model_all)
+graph_dir = os.path.join(module_home, 'graphs/' + model_all)
+
+# best_checkpoint = os.path.join(module_home, 'checkpoints/bidrectional_lstm_lr_' + str(learning_rate) + '_l2_' + str(l2_rate) + '_drop_' + str(dropout_keep_prob) + '_best')
+# continue_checkpoint = os.path.join(module_home, 'checkpoints/bidrectional_lstm_lr_' + str(learning_rate) + '_l2_' + str(l2_rate) + '_drop_' + str(dropout_keep_prob))
 #
 
 def get_embedding_wrapper():

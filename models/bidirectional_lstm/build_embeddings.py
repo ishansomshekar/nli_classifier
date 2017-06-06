@@ -2,7 +2,8 @@ import os
 import sys
 import pickle
 
-module_home = os.environ['NLI_PATH']
+# module_home = os.environ['NLI_PATH']
+module_home = '/Users/Chip/dev/cs224s/nli_classifier'
 sys.path.insert(0, module_home)
 
 from utils.data_utils import ensure_dir
