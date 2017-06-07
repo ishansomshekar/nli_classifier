@@ -12,8 +12,7 @@ import numpy as np
 
 import json
 
-# module_home = os.environ['NLI_PATH']
-module_home = '/Users/Chip/dev/cs224s/nli_classifier'
+module_home = os.environ['NLI_PATH']
 sys.path.insert(0, module_home)
 
 from utils.data_utils import return_files
