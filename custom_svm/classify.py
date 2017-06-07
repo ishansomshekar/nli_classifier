@@ -6,6 +6,7 @@ import sys
 import math
 import codecs
 import csv
+import json
 
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.preprocessing import LabelEncoder
@@ -29,11 +30,14 @@ train_label_file = os.path.join(module_home, 'data/labels/train/labels.train.csv
 train_feat_file = os.path.join(get_script_path(), 'features/train.npz')
 train_processed_dir = os.path.join(get_script_path(), 'processed/train/')
 train_in_dir = os.path.join(module_home, 'data/speech_transcriptions/train/tokenized/')
+train_ivec_file = os.path.join(module_home, 'data/ivectors/train/ivectors.json')
+
 
 dev_label_file = os.path.join(module_home, 'data/labels/dev/labels.dev.csv')
 dev_feat_file = os.path.join(get_script_path(), 'features/dev.npz')
 dev_processed_dir = os.path.join(get_script_path(), 'processed/dev/')
 dev_in_dir = os.path.join(module_home, 'data/speech_transcriptions/dev/tokenized/')
+dev_ivec_file = os.path.join(module_home, 'data/ivectors/dev/ivectors.json')
 
 test_label_file = os.path.join(module_home, 'data/labels/test/labels.test.csv')
 test_feat_file = os.path.join(get_script_path(), 'features/test.npz')
@@ -149,8 +153,6 @@ class Progbar(object):
 
 class DataProcessor:
     def __init__(self):
-        self.stop_word_file = os.path.join(module_home, 'data/stopwords.txt')
-        self.stop_words = self._get_stop_words()
         print("Loading spacy")
         self.spacy = spacy.load('en')
         print("Spacy loaded")
@@ -159,13 +161,6 @@ class DataProcessor:
         self._process_data(train_in_dir, train_processed_dir)
         self._process_data(dev_in_dir, dev_processed_dir)
         # self._process_data(test_in_dir, test_processed_dir)
-
-    def _get_stop_words(self):
-        stop_words = set()
-        with codecs.open(self.stop_word_file, 'r', encoding='utf-8') as f:
-            for word_line in f:
-                stop_words.add(word_line)
-        return stop_words
 
     def _get_speaker_id(self, path):
         return path.split('/')[-1].split('.')[0]
@@ -220,21 +215,27 @@ class DataProcessor:
 
 class FeatureExtractor:
     def __init__(self):
+        train_ivecs = json.load(open(train_ivec_file))
+        dev_ivecs = json.load(open(dev_ivec_file))
+        train_ivecs.update(dev_ivecs)
+        self.ivecs = train_ivecs
         self.feat_extractors = [
                 lambda data : {"W_" + w + "_UNI": 1 for w in set(data['words'])}, # Unigrams on words
-                #lambda data : {"L_" + w + "_UNI": 1 for w in set(data['lemmas'])}, # Unigrams on lemmas
-                #lambda data : {"L_" + w + "_UNI": 1 for w in set(data['stop_words'])}, # Unigrams on stop_words
-                #lambda data : {"POS_" + w + "_UNI": 1 for w in set(data['pos_tags'])}, # Unigrams on pos_tags
+                lambda data : {"L_" + w + "_UNI": 1 for w in set(data['lemmas'])}, # Unigrams on lemmas
+                lambda data : {"L_" + w + "_UNI": 1 for w in set(data['stop_words'])}, # Unigrams on stop_words
+                lambda data : {"POS_" + w + "_UNI": 1 for w in set(data['pos_tags'])}, # Unigrams on pos_tags
                 #lambda data : {"FINE_POS_" + w + "_UNI": 1 for w in set(data['fine_pos_tags'])}, # Unigrams on pos_tags
                 #lambda data : {"COUNT_" + w + "_" + str(data['words'].count(w)) : 1 for w in data['words']}, # Word counts
+                #lambda data : {"COUNT_" + w: data['words'].count(w) for w in data['words']}, # Word counts
                 #lambda data : {"COUNT_" + w: data['lemmas'].count(w) for w in data['lemmas']}, # Lemma counts
                 #lambda data : {"COUNT_" + w: data['pos_tags'].count(w) for w in data['pos_tags']}, # POS tag counts
-                #lambda data : {"W_" + big[0] + "_" + big[1] + "_BIG": 1 for big in set((w1, w2) for w1, w2 in zip(data['words'], data['words'][1:]))}, # Word bigrams
-                #lambda data : {"L_" + big[0] + "_" + big[1] + "_BIG": 1 for big in set((w1, w2) for w1, w2 in zip(data['lemmas'], data['lemmas'][1:]))}, # Lemma bigrams
-                #lambda data : {"POS_" + big[0] + "_" + big[1] + "_BIG": 1 for big in set((w1, w2) for w1, w2 in zip(data['pos_tags'], data['pos_tags'][1:]))}, # POS tag bigrams
+                lambda data : {"W_" + big[0] + "_" + big[1] + "_BIG": 1 for big in set((w1, w2) for w1, w2 in zip(data['words'], data['words'][1:]))}, # Word bigrams
+                lambda data : {"L_" + big[0] + "_" + big[1] + "_BIG": 1 for big in set((w1, w2) for w1, w2 in zip(data['lemmas'], data['lemmas'][1:]))}, # Lemma bigrams
+                lambda data : {"POS_" + big[0] + "_" + big[1] + "_BIG": 1 for big in set((w1, w2) for w1, w2 in zip(data['pos_tags'], data['pos_tags'][1:]))}, # POS tag bigrams
                 #lambda data : {"FINE_POS_" + big[0] + "_" + big[1] + "_BIG": 1 for big in set((w1, w2) for w1, w2 in zip(data['fine_pos_tags'], data['fine_pos_tags'][1:]))}, # POS tag bigrams
-                #lambda data : {"L_" + big[0] + "_" + big[1] + "_BIG": 1 for big in set((w1, w2) for w1, w2 in zip(data['stop_words'], data['stop_words'][1:]))}, # Stop word bigrams
+                lambda data : {"L_" + big[0] + "_" + big[1] + "_BIG": 1 for big in set((w1, w2) for w1, w2 in zip(data['stop_words'], data['stop_words'][1:]))}, # Stop word bigrams
                 #lambda data : {"OOV_COUNT_" + str(data['oov_count']): 1}, # OOV Word count
+                #lambda data: {"IVEC_ROW_" + str(i) + ":": self.ivecs[data['speaker_id']][i] for i in xrange(len(self.ivecs[data['speaker_id']]))},
         ]
         self.vectorizer = DictVectorizer(sparse=True)
 
@@ -277,7 +278,9 @@ class Classifier:
 
 
     def _load_all_feats(self, in_file):
-        return scipy.sparse.load_npz(in_file)
+        text_feats = scipy.sparse.load_npz(in_file)
+
+
 
     def _load_labels(self, in_file):
         with open(in_file, 'r') as f:
@@ -295,8 +298,8 @@ class Classifier:
         print("Evaluating SVC on dev set")
         preds = self.svc.predict(self.dev_feats)
         f1 = f1_score(self.dev_labels, preds, average=None)
-        print("F1")
-        print(list(self.le.labels_))
+        print("F1: avg: %f" % np.mean(f1))
+        print(list(self.le.classes_))
         print(f1)
 
 
