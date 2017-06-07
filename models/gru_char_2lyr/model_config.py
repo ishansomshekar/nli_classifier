@@ -1,6 +1,7 @@
 import logging
 import os
-module_home = os.environ['NLI_PATH']
+# module_home = os.environ['NLI_PATH']
+module_home = '/Users/Chip/dev/cs224s/nli_classifier'
 
 from utils.embedding_wrappers.random import RandomEmbeddingWrapper
 from utils.embedding_wrappers.glove import GloveEmbeddingWrapper

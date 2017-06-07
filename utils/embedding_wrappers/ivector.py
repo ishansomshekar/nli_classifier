@@ -11,6 +11,8 @@ import json
 from tensorflow.python.platform import gfile
 import numpy as np
 
+import json
+
 module_home = os.environ['NLI_PATH']
 sys.path.insert(0, module_home)
 
@@ -58,8 +60,11 @@ class IvectorEmbeddingWrapper(object):
         :return:
         """
         if not gfile.Exists(embeddings_path):
+
             embeddings = np.array(self.fullDict.values())
             np.savez_compressed(embeddings_path, embedding=embeddings)
+
+
             self.embeddings = embeddings
 
     def getIndex(self, speakerId):

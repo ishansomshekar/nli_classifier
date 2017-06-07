@@ -13,6 +13,7 @@ sys.path.insert(0, module_home)
 
 from utils.progbar import Progbar
 from utils.data_utils import *
+from utils.confusion_matrix import plot
 import  model_config
 
 
@@ -79,13 +80,13 @@ class BaselinePredictor():
             tf.contrib.rnn.DropoutWrapper(
                 tf.contrib.rnn.GRUCell(self.num_hidden),
                 output_keep_prob=self.dropout_keep_prob_placeholder)
-                    for _ in xrange(self.num_layers)])
+                    for _ in range(self.num_layers)])
         
         bw_cell = tf.contrib.rnn.MultiRNNCell([
             tf.contrib.rnn.DropoutWrapper(
                 tf.contrib.rnn.GRUCell(self.num_hidden),
                 output_keep_prob=self.dropout_keep_prob_placeholder)
-                    for _ in xrange(self.num_layers)])
+                    for _ in range(self.num_layers)])
 
         outputs, states = tf.nn.bidirectional_dynamic_rnn(
                 fw_cell,
@@ -97,7 +98,7 @@ class BaselinePredictor():
         fw_state = states[0][0]
         bw_state = states[1][0]
         output = tf.concat([fw_state, bw_state], 1)
-        print output.get_shape()
+        print(output.get_shape())
 
 
 
@@ -160,7 +161,7 @@ class BaselinePredictor():
             if accuracy > best_score:
                 best_score = accuracy
             if (index + last_step + 1) % model_config.log_frequency == 0:
-                saver.save(sess, model_config.continue_checkpoint + '/baseline_lstm', index + last_step)
+                saver.save(sess, model_config.continue_checkpoint + '/bidirectional_lstm', index + last_step)
         return accuracy, best_score
 
     def eval_dev(self, sess, saver, best_score):
@@ -168,19 +169,26 @@ class BaselinePredictor():
         count = 0
         total_accuracy = 0.0
         batches = make_batches(1, self.dev_data)
-        for batch in batches:
+        all_preds = np.zeros((len(batches), ))
+        all_labels = np.zeros((len(batches), ))
+        for i, batch in enumerate(batches):
             tf.get_variable_scope().reuse_variables()
-            feed = self.create_feed_dict(inputs=batch[0], lens=batch[1], labels=batch[2], dropout_prob=1.0)
-            loss, accuracy = sess.run([self.loss, self.accuracy], feed_dict=feed)
+            feed = self.create_feed_dict(inputs=batch[0], lens=batch[1], labels=batch[2], keep_prob=1.0)
+            loss, accuracy, preds = sess.run([self.loss, self.accuracy, self.preds], feed_dict=feed)
+            all_preds[i] = np.argmax(preds)
+            all_labels[i] = np.argmax(batch[2])
             prog.update(count + 1, [("dev loss", loss), ("dev accuracy", accuracy)])
             total_accuracy += accuracy
             count += 1
+        if model_config.make_confusion_matrix:
+            plot(all_labels, all_preds)
         final_accuracy = total_accuracy / count
         if final_accuracy > best_score:
             best_score = final_accuracy
             print("\nNew best score! Saving model in %s" % model_config.best_checkpoint)
             saver.save(sess, model_config.best_checkpoint + '/baseline_lstm')
         return final_accuracy, best_score
+
 
     def fit(self, sess, saver, writer, last_step):
         best_dev_score = 0.0

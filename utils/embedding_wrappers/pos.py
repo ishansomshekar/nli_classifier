@@ -10,7 +10,8 @@ from tensorflow.python.platform import gfile
 import numpy as np
 from os.path import join as pjoin
 
-module_home = os.environ['NLI_PATH']
+# module_home = os.environ['NLI_PATH']
+module_home = '/Users/Chip/dev/cs224s/nli_classifier'
 sys.path.insert(0, module_home)
 
 from utils.annotator import Annotator

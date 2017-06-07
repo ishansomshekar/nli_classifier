@@ -1,0 +1,536 @@
+num_epochs = 10
+batch_size = 64
+embedding_dim = 300
+
+num_hidden = 256
+num_layers = 1
+
+learning_rate = 1e-4
+l2_rate = 1e-3
+dropout_keep_prob = 0.6
+
+/Users/Chip/dev/cs224s/nli_classifier/checkpoints/gru_glove_2lyr_0.0001_l2_0.001_drop_0.6_best
+
+Epoch 0  - Train score: 0.28125  - Dev score: 0.171818181872
+Epoch 1  - Train score: 0.328125  - Dev score: 0.171818181872
+Epoch 2  - Train score: 0.390625  - Dev score: 0.232727274299
+Epoch 3  - Train score: 0.453125  - Dev score: 0.297272741795
+Epoch 4  - Train score: 0.484375  - Dev score: 0.323636353016
+Epoch 5  - Train score: 0.515625  - Dev score: 0.280000001192
+Epoch 6  - Train score: 0.515625  - Dev score: 0.316363632679
+Epoch 7  - Train score: 0.578125  - Dev score: 0.350909084082
+Epoch 8  - Train score: 0.609375  - Dev score: 0.332727283239
+Epoch 9  - Train score: 0.609375  - Dev score: 0.352727264166
+
+
+num_epochs = 10
+batch_size = 64
+embedding_dim = 100
+
+num_hidden = 256
+num_layers = 1
+
+learning_rate = 1e-4
+l2_rate = 1e-3
+dropout_keep_prob = 0.6
+
+New best score! Saving model in /Users/Chip/dev/cs224s/nli_classifier/checkpoints/gru_glove_2lyr_0.0001_l2_0.001_drop_0.6_layers_1_n_hidden_256_dim_100_best
+best score: 0.368181824684
+
+Epoch 10 out of 10
+172/172 [==============================] - 1360s - train loss: 1.5002 - accuracy: 0.4644     
+1/1 [==============================] - 25s - dev loss: 1.7929 - dev accuracy: 0.3609
+Best score for each epoch:
+Epoch 0  - Train score: 0.25  - Dev score: 0.158181816339
+Epoch 1  - Train score: 0.328125  - Dev score: 0.164545461535
+Epoch 2  - Train score: 0.375  - Dev score: 0.228181824088
+Epoch 3  - Train score: 0.421875  - Dev score: 0.276363641024
+Epoch 4  - Train score: 0.46875  - Dev score: 0.306363642216
+Epoch 5  - Train score: 0.53125  - Dev score: 0.327272713184
+Epoch 6  - Train score: 0.59375  - Dev score: 0.313636362553
+Epoch 7  - Train score: 0.59375  - Dev score: 0.351818174124
+Epoch 8  - Train score: 0.59375  - Dev score: 0.368181824684
+Epoch 9  - Train score: 0.59375  - Dev score: 0.360909104347
+
+num_epochs = 10
+batch_size = 64
+embedding_dim = 100
+
+num_hidden = 256
+num_layers = 2
+
+learning_rate = 1e-4
+l2_rate = 1e-3
+dropout_keep_prob = 0.6
+
+New best score! Saving model in /home/Chip/nli_classifier/checkpoints/gru_glove_2lyr_0.0001_l2_0.001_drop_0.6_layers_2_n_hidden_256_dim_100_best
+Best score: 0.396363675594
+Best score for each epoch:
+Epoch 0  - Train score: 0.375  - Dev score: 0.168181806803
+Epoch 1  - Train score: 0.4375  - Dev score: 0.233636364341
+Epoch 2  - Train score: 0.4375  - Dev score: 0.289090901613
+Epoch 3  - Train score: 0.5  - Dev score: 0.306363612413
+Epoch 4  - Train score: 0.53125  - Dev score: 0.328181862831
+Epoch 5  - Train score: 0.53125  - Dev score: 0.344545483589
+Epoch 6  - Train score: 0.5625  - Dev score: 0.3663636446
+Epoch 7  - Train score: 0.578125  - Dev score: 0.346363604069
+Epoch 8  - Train score: 0.609375  - Dev score: 0.389999985695
+Epoch 9  - Train score: 0.640625  - Dev score: 0.396363675594
+
+
+num_epochs = 10
+batch_size = 64
+embedding_dim = 100
+
+num_hidden = 256
+num_layers = 2
+
+learning_rate = 1e-4
+l2_rate = 1e-2
+dropout_keep_prob = 0.6
+
+New best score! Saving model in /home/Chip/nli_classifier/checkpoints/gru_glove_2lyr_0.0001_l2_0.01_drop_0.6_layers_2_n_hidden_256_dim_100_best
+Best score: 0.389999985695
+Best score for each epoch:
+Epoch 0  - Train score: 0.25  - Dev score: 0.181818187237
+Epoch 1  - Train score: 0.390625  - Dev score: 0.217272728682
+Epoch 2  - Train score: 0.4375  - Dev score: 0.273636341095
+Epoch 3  - Train score: 0.5  - Dev score: 0.30909088254
+Epoch 4  - Train score: 0.5  - Dev score: 0.327272713184
+Epoch 5  - Train score: 0.609375  - Dev score: 0.340000033379
+Epoch 6  - Train score: 0.609375  - Dev score: 0.363636374474
+Epoch 7  - Train score: 0.609375  - Dev score: 0.367272734642
+Epoch 8  - Train score: 0.609375  - Dev score: 0.371818184853
+Epoch 9  - Train score: 0.671875  - Dev score: 0.389999985695
+
+num_epochs = 10
+batch_size = 64
+embedding_dim = 100
+
+num_hidden = 256
+num_layers = 1
+
+learning_rate = 1e-4
+l2_rate = 1e-3
+dropout_keep_prob = 0.5
+
+gru_glove_2lyr_0.0001_l2_0.001_drop_0.6_layers_1_n_hidden_256_dim_100_best
+
+Best score for each epoch:
+Epoch 0  - Train score: 0.25  - Dev score: 0.158181816339
+Epoch 1  - Train score: 0.328125  - Dev score: 0.164545461535
+Epoch 2  - Train score: 0.375  - Dev score: 0.228181824088
+Epoch 3  - Train score: 0.421875  - Dev score: 0.276363641024
+Epoch 4  - Train score: 0.46875  - Dev score: 0.306363642216
+Epoch 5  - Train score: 0.53125  - Dev score: 0.327272713184
+Epoch 6  - Train score: 0.59375  - Dev score: 0.313636362553
+Epoch 7  - Train score: 0.59375  - Dev score: 0.351818174124
+Epoch 8  - Train score: 0.59375  - Dev score: 0.368181824684
+Epoch 9  - Train score: 0.59375  - Dev score: 0.360909104347
+
+num_epochs = 10
+batch_size = 64
+embedding_dim = 100
+
+num_hidden = 256
+num_layers = 2
+
+learning_rate = 1e-4
+l2_rate = 1e-2
+dropout_keep_prob = 0.5
+
+New best score! Saving model in /home/Chip/nli_classifier/checkpoints/gru_glove_2lyr_0.0001_l2_0.01_drop_0.5_layers_2_n_hidden_256_dim_100_best
+Best score: 0.417272716761
+Best score for each epoch:
+Epoch 0  - Train score: 0.267857  - Dev score: 0.170000001788
+Epoch 1  - Train score: 0.421875  - Dev score: 0.23363634944
+Epoch 2  - Train score: 0.453125  - Dev score: 0.284545451403
+Epoch 3  - Train score: 0.484375  - Dev score: 0.3081818223
+Epoch 4  - Train score: 0.5  - Dev score: 0.333636343479
+Epoch 5  - Train score: 0.546875  - Dev score: 0.334545433521
+Epoch 6  - Train score: 0.609375  - Dev score: 0.368181794882
+Epoch 7  - Train score: 0.625  - Dev score: 0.3836363554
+Epoch 8  - Train score: 0.671875  - Dev score: 0.399090886116
+Epoch 9  - Train score: 0.671875  - Dev score: 0.417272716761
+
+
+num_epochs = 10
+batch_size = 64
+embedding_dim = 100
+
+num_hidden = 256
+num_layers = 1
+
+learning_rate = 1e-3
+l2_rate = 1e-3
+dropout_keep_prob = 0.5
+gru_glove_2lyr_0.001_l2_0.001_drop_0.6_layers_1_n_hidden_256_dim_100_best
+
+Best score for each epoch:
+Epoch 0  - Train score: 0.34375  - Dev score: 0.24181817472
+Epoch 1  - Train score: 0.546875  - Dev score: 0.348181813955
+Epoch 2  - Train score: 0.6875  - Dev score: 0.430000007153
+Epoch 3  - Train score: 0.796875  - Dev score: 0.405454546213
+Epoch 4  - Train score: 0.875  - Dev score: 0.410909086466
+Epoch 5  - Train score: 0.984375  - Dev score: 0.419999986887
+Epoch 6  - Train score: 1.0  - Dev score: 0.416363626719
+Epoch 7  - Train score: 1.0  - Dev score: 0.421818166971
+Epoch 8  - Train score: 1.0  - Dev score: 0.406363636255
+Epoch 9  - Train score: 1.0  - Dev score: 0.414545446634
+
+
+num_epochs = 10
+batch_size = 64
+embedding_dim = 100
+
+num_hidden = 256
+num_layers = 1
+
+learning_rate = 1e-3
+l2_rate = 1e-2
+dropout_keep_prob = 0.5
+
+Epoch 1 out of 10
+172/172 [==============================] - 112s - train loss: 2.2648 - accuracy: 0.1752     
+1/1 [==============================] - 0s - dev loss: 2.0565 - dev accuracy: 0.2645
+
+New best score! Saving model in /home/Chip/nli_classifier/checkpoints/gru_glove_2lyr_0.001_l2_0.01_drop_0.5_layers_1_n_hidden_256_dim_100_best
+Best score: 0.264545440674
+
+Epoch 2 out of 10
+172/172 [==============================] - 109s - train loss: 1.8192 - accuracy: 0.3460    
+1/1 [==============================] - 0s - dev loss: 1.7550 - dev accuracy: 0.3691
+
+New best score! Saving model in /home/Chip/nli_classifier/checkpoints/gru_glove_2lyr_0.001_l2_0.01_drop_0.5_layers_1_n_hidden_256_dim_100_best
+Best score: 0.369090914726
+
+Epoch 3 out of 10
+172/172 [==============================] - 109s - train loss: 1.3798 - accuracy: 0.5086    
+1/1 [==============================] - 0s - dev loss: 1.6274 - dev accuracy: 0.4364
+
+New best score! Saving model in /home/Chip/nli_classifier/checkpoints/gru_glove_2lyr_0.001_l2_0.01_drop_0.5_layers_1_n_hidden_256_dim_100_best
+Best score: 0.436363637447
+
+Epoch 4 out of 10
+172/172 [==============================] - 109s - train loss: 0.9863 - accuracy: 0.6576    
+1/1 [==============================] - 0s - dev loss: 1.6886 - dev accuracy: 0.4509
+
+New best score! Saving model in /home/Chip/nli_classifier/checkpoints/gru_glove_2lyr_0.001_l2_0.01_drop_0.5_layers_1_n_hidden_256_dim_100_best
+Best score: 0.450909078121
+
+Epoch 5 out of 10
+172/172 [==============================] - 109s - train loss: 0.6472 - accuracy: 0.7859    
+1/1 [==============================] - 0s - dev loss: 1.8755 - dev accuracy: 0.4400
+
+Epoch 6 out of 10
+172/172 [==============================] - 109s - train loss: 0.3806 - accuracy: 0.8777    
+1/1 [==============================] - 0s - dev loss: 2.1751 - dev accuracy: 0.4382
+
+Epoch 7 out of 10
+172/172 [==============================] - 110s - train loss: 0.2175 - accuracy: 0.9326    
+1/1 [==============================] - 0s - dev loss: 2.6068 - dev accuracy: 0.4191
+
+Epoch 8 out of 10
+172/172 [==============================] - 110s - train loss: 0.1188 - accuracy: 0.9675    
+1/1 [==============================] - 0s - dev loss: 2.8461 - dev accuracy: 0.4100
+
+Epoch 9 out of 10
+ 83/172 [=============>................] - ETA: 57s - train loss: 0.0769 - accuracy: 0.9780
+
+
+num_epochs = 10
+batch_size = 64
+embedding_dim = 100
+
+num_hidden = 128
+num_layers = 1
+
+learning_rate = 1e-3
+l2_rate = 1e-2
+dropout_keep_prob = 0.5
+gru_glove_2lyr_0.001_l2_0.01_drop_0.5_layers_1_n_hidden_128_dim_100_best
+
+Epoch 0  - Train score: 0.328125  - Dev score: 0.252727270126
+Epoch 1  - Train score: 0.515625  - Dev score: 0.364545464516
+Epoch 2  - Train score: 0.65625  - Dev score: 0.413636386395
+Epoch 3  - Train score: 0.828125  - Dev score: 0.453636348248
+Epoch 4  - Train score: 0.921875  - Dev score: 0.42909091711
+Epoch 5  - Train score: 0.953125  - Dev score: 0.422727257013
+Epoch 6  - Train score: 0.984375  - Dev score: 0.420000016689
+Epoch 7  - Train score: 1.0  - Dev score: 0.414545446634
+Epoch 8  - Train score: 1.0  - Dev score: 0.411818146706
+Epoch 9  - Train score: 1.0  - Dev score: 0.405454546213
+
+
+num_epochs = 10
+batch_size = 64
+embedding_dim = 50
+
+num_hidden = 128
+num_layers = 1
+
+learning_rate = 1e-3
+l2_rate = 1e-2
+dropout_keep_prob = 0.5
+
+Epoch 0  - Train score: 0.375  - Dev score: 0.232727259398
+Epoch 1  - Train score: 0.5625  - Dev score: 0.365454554558
+Epoch 2  - Train score: 0.6875  - Dev score: 0.425454556942
+Epoch 3  - Train score: 0.859375  - Dev score: 0.447272717953
+Epoch 4  - Train score: 0.890625  - Dev score: 0.4245454669
+Epoch 5  - Train score: 0.96875  - Dev score: 0.420909106731
+Epoch 6  - Train score: 1.0  - Dev score: 0.409090906382
+Epoch 7  - Train score: 1.0  - Dev score: 0.41181820631
+Epoch 8  - Train score: 1.0  - Dev score: 0.389999985695
+Epoch 9  - Train score: 1.0  - Dev score: 0.400000035763
+
+num_epochs = 10
+batch_size = 64
+embedding_dim = 50
+
+num_hidden = 128
+num_layers = 1
+
+learning_rate = 1e-3
+l2_rate = 1e-1
+dropout_keep_prob = 0.5
+
+Best score for each epoch:
+Epoch 0  - Train score: 0.390625  - Dev score: 0.280909091234
+Epoch 1  - Train score: 0.546875  - Dev score: 0.341818153858
+Epoch 2  - Train score: 0.671875  - Dev score: 0.439999997616
+Epoch 3  - Train score: 0.84375  - Dev score: 0.451818168163
+Epoch 4  - Train score: 0.90625  - Dev score: 0.428181827068
+Epoch 5  - Train score: 1.0  - Dev score: 0.415454566479
+Epoch 6  - Train score: 1.0  - Dev score: 0.397272765636
+Epoch 7  - Train score: 1.0  - Dev score: 0.405454516411
+Epoch 8  - Train score: 1.0  - Dev score: 0.413636356592
+Epoch 9  - Train score: 1.0  - Dev score: 0.414545476437
+
+num_epochs = 10
+batch_size = 64
+embedding_dim = 50
+
+num_hidden = 128
+num_layers = 1
+
+learning_rate = 1e-3
+l2_rate = 1
+dropout_keep_prob = 0.5
+
+Best score for each epoch:
+Epoch 0  - Train score: 0.3125  - Dev score: 0.219090908766
+Epoch 1  - Train score: 0.515625  - Dev score: 0.366363614798
+Epoch 2  - Train score: 0.609375  - Dev score: 0.403636366129
+Epoch 3  - Train score: 0.78125  - Dev score: 0.42909091711
+Epoch 4  - Train score: 0.875  - Dev score: 0.437272727489
+Epoch 5  - Train score: 0.9375  - Dev score: 0.422727286816
+Epoch 6  - Train score: 0.984375  - Dev score: 0.409090876579
+Epoch 7  - Train score: 1.0  - Dev score: 0.404545426369
+Epoch 8  - Train score: 1.0  - Dev score: 0.398181796074
+Epoch 9  - Train score: 1.0  - Dev score: 0.406363606453
+
+
+num_epochs = 10
+batch_size = 64
+embedding_dim = 50
+
+num_hidden = 128
+num_layers = 1
+
+learning_rate = 1e-3
+l2_rate = 2500.0
+dropout_keep_prob = 0.4
+
+Epoch 4 out of 10
+172/172 [==============================] - 96s - train loss: 1.1358 - accuracy: 0.6220     
+1/1 [==============================] - 0s - dev loss: 1.7226 - dev accuracy: 0.4318
+
+New best score! Saving model in /home/Chip/nli_classifier/checkpoints/gru_glove_2lyr_0.001_l2_2500.0_drop_0.4_layers_1_n_hidden_64_dim_50_best
+Best score: 0.431818187237
+
+
+New best score! Saving model in /home/Chip/nli_classifier/checkpoints/gru_glove_2lyr_0.001_l2_2500.0_drop_0.4_layers_1_n_hidden_64_dim_50_best
+Epoch 0  - Train score: 0.25  - Dev score: 0.140909090638
+Epoch 1  - Train score: 0.265625  - Dev score: 0.210000008345
+Epoch 2  - Train score: 0.359375  - Dev score: 0.309999972582
+Epoch 3  - Train score: 0.5625  - Dev score: 0.372727274895
+Epoch 4  - Train score: 0.65625  - Dev score: 0.382727235556
+Epoch 5  - Train score: 0.71875  - Dev score: 0.4009090662
+Epoch 6  - Train score: 0.828125  - Dev score: 0.406363636255
+Epoch 7  - Train score: 0.859375  - Dev score: 0.397272765636
+Epoch 8  - Train score: 0.90625  - Dev score: 0.375454545021
+Epoch 9  - Train score: 0.90625  - Dev score: 0.379999995232
+
+
+---
+
+bidirectional
+num_epochs = 10
+batch_size = 64
+embedding_dim = 300
+
+num_hidden = 128
+num_layers = 1
+
+learning_rate = 1e-3
+l2_rate = 1e-2
+dropout_keep_prob = 0.5
+
+bidrectional_lstm_lr_0.001_l2_0.001_drop_0.6_layers_1_n_hidden_256
+
+Epoch 1 out of 10
+172/172 [==============================] - 1224s - train loss: 2.2228 - accuracy: 0.1989     
+1100/1100 [==============================] - 165s - dev loss: 1.9627 - dev accuracy: 0.2855     
+
+New best score! Saving model in /Users/Chip/dev/cs224s/nli_classifier/checkpoints/bidrectional_lstm_lr_0.001_l2_0.001_drop_0.6_layers_1_n_hidden_256_best
+
+Epoch 2 out of 10
+172/172 [==============================] - 1270s - train loss: 1.7161 - accuracy: 0.3904     
+1100/1100 [==============================] - 177s - dev loss: 1.7228 - dev accuracy: 0.3800     
+
+New best score! Saving model in /Users/Chip/dev/cs224s/nli_classifier/checkpoints/bidrectional_lstm_lr_0.001_l2_0.001_drop_0.6_layers_1_n_hidden_256_best
+
+Epoch 3 out of 10
+172/172 [==============================] - 1182s - train loss: 1.2631 - accuracy: 0.5634     
+1100/1100 [==============================] - 159s - dev loss: 1.5610 - dev accuracy: 0.4564     
+
+New best score! Saving model in /Users/Chip/dev/cs224s/nli_classifier/checkpoints/bidrectional_lstm_lr_0.001_l2_0.001_drop_0.6_layers_1_n_hidden_256_best
+
+Epoch 4 out of 10
+172/172 [==============================] - 1223s - train loss: 0.8494 - accuracy: 0.7126     
+1100/1100 [==============================] - 165s - dev loss: 1.7327 - dev accuracy: 0.4618  
+
+
+
+bidirectional
+num_epochs = 10
+batch_size = 64
+embedding_dim = 300
+
+num_hidden = 64
+num_layers = 1
+
+learning_rate = 1e-3
+l2_rate = 1e-3
+dropout_keep_prob = 0.6
+
+Epoch 1 out of 10
+172/172 [==============================] - 288s - train loss: 2.2685 - accuracy: 0.1788     
+1100/1100 [==============================] - 45s - dev loss: 2.0973 - dev accuracy: 0.2518     
+
+New best score! Saving model in /Users/Chip/dev/cs224s/nli_classifier/checkpoints/bidrectional_lstm_lr_0.001_l2_0.001_drop_0.6_layers_1_n_hidden_64_best
+
+Epoch 2 out of 10
+172/172 [==============================] - 285s - train loss: 1.7609 - accuracy: 0.3783     
+1100/1100 [==============================] - 39s - dev loss: 1.7934 - dev accuracy: 0.3564     
+
+New best score! Saving model in /Users/Chip/dev/cs224s/nli_classifier/checkpoints/bidrectional_lstm_lr_0.001_l2_0.001_drop_0.6_layers_1_n_hidden_64_best
+
+Epoch 3 out of 10
+172/172 [==============================] - 292s - train loss: 1.3063 - accuracy: 0.5467     
+1100/1100 [==============================] - 39s - dev loss: 1.6296 - dev accuracy: 0.4500     
+
+New best score! Saving model in /Users/Chip/dev/cs224s/nli_classifier/checkpoints/bidrectional_lstm_lr_0.001_l2_0.001_drop_0.6_layers_1_n_hidden_64_best
+
+Epoch 4 out of 10
+172/172 [==============================] - 325s - train loss: 0.9173 - accuracy: 0.6942     
+1100/1100 [==============================] - 52s - dev loss: 1.7001 - dev accuracy: 0.4427     
+
+Epoch 5 out of 10
+172/172 [==============================] - 339s - train loss: 0.6208 - accuracy: 0.8007     
+1100/1100 [==============================] - 52s - dev loss: 1.8946 - dev accuracy: 0.4309  
+ 
+
+Epoch 6 out of 10
+172/172 [==============================] - 352s - train loss: 0.3909 - accuracy: 0.8830     
+1100/1100 [==============================] - 51s - dev loss: 2.1364 - dev accuracy: 0.4200 
+
+Epoch 7 out of 10
+172/172 [==============================] - 343s - train loss: 0.2371 - accuracy: 0.9309     
+1100/1100 [==============================] - 46s - dev loss: 2.4458 - dev accuracy: 0.4055     
+
+Epoch 8 out of 10
+172/172 [==============================] - 322s - train loss: 0.1422 - accuracy: 0.9622     
+1100/1100 [==============================] - 49s - dev loss: 2.6798 - dev accuracy: 0.4109     
+
+Epoch 9 out of 10
+172/172 [==============================] - 417s - train loss: 0.1000 - accuracy: 0.9755     
+1100/1100 [==============================] - 66s - dev loss: 2.9716 - dev accuracy: 0.4036     
+
+Epoch 10 out of 10
+ 67/172 [==========>...................] - ETA: 260s - train loss: 0.0607 - accuracy: 0.9895
+
+
+
+bidirectional
+num_epochs = 10
+batch_size = 64
+embedding_dim = 100
+
+num_hidden = 64
+num_layers = 1
+
+learning_rate = 1e-3
+l2_rate = 1
+dropout_keep_prob = 0.5
+
+Epoch 1 out of 10
+172/172 [==============================] - 64s - train loss: 2.2583 - accuracy: 0.1831      
+1100/1100 [==============================] - 139s - dev loss: 2.1155 - dev accuracy: 0.2645     
+
+New best score! Saving model in /home/Chip/nli_classifier/checkpoints/bidrectional_lstm_lr_0.001_l2_1.0_drop_0.5_layers_1_n_hidden_64_embed_100_best
+
+Epoch 2 out of 10
+172/172 [==============================] - 64s - train loss: 1.7851 - accuracy: 0.3673     
+1100/1100 [==============================] - 139s - dev loss: 1.7696 - dev accuracy: 0.3355     
+
+New best score! Saving model in /home/Chip/nli_classifier/checkpoints/bidrectional_lstm_lr_0.001_l2_1.0_drop_0.5_layers_1_n_hidden_64_embed_100_best
+
+Epoch 3 out of 10
+172/172 [==============================] - 64s - train loss: 1.3455 - accuracy: 0.5372     
+1100/1100 [==============================] - 139s - dev loss: 1.6021 - dev accuracy: 0.4373     
+
+New best score! Saving model in /home/Chip/nli_classifier/checkpoints/bidrectional_lstm_lr_0.001_l2_1.0_drop_0.5_layers_1_n_hidden_64_embed_100_best
+
+Epoch 4 out of 10
+172/172 [==============================] - 64s - train loss: 0.9629 - accuracy: 0.6842     
+1100/1100 [==============================] - 139s - dev loss: 1.6775 - dev accuracy: 0.4418     
+
+New best score! Saving model in /home/Chip/nli_classifier/checkpoints/bidrectional_lstm_lr_0.001_l2_1.0_drop_0.5_layers_1_n_hidden_64_embed_100_best
+
+Epoch 5 out of 10
+172/172 [==============================] - 64s - train loss: 0.6352 - accuracy: 0.7994     
+1100/1100 [==============================] - 140s - dev loss: 1.8452 - dev accuracy: 0.4482     
+
+New best score! Saving model in /home/Chip/nli_classifier/checkpoints/bidrectional_lstm_lr_0.001_l2_1.0_drop_0.5_layers_1_n_hidden_64_embed_100_best
+
+Epoch 6 out of 10
+172/172 [==============================] - 63s - train loss: 0.3947 - accuracy: 0.8840     
+1100/1100 [==============================] - 139s - dev loss: 2.1755 - dev accuracy: 0.4318     
+
+Epoch 7 out of 10
+172/172 [==============================] - 63s - train loss: 0.2270 - accuracy: 0.9356     
+1100/1100 [==============================] - 139s - dev loss: 2.4810 - dev accuracy: 0.4182     
+
+Epoch 8 out of 10
+172/172 [==============================] - 63s - train loss: 0.1371 - accuracy: 0.9638     
+1100/1100 [==============================] - 139s - dev loss: 2.7465 - dev accuracy: 0.4136     
+
+Epoch 9 out of 10
+ 33/172 [====>.........................] - ETA: 50s - train loss: 0.0850 - accuracy: 0.9792
+
+
+
+num_epochs = 10
+batch_size = 64
+embedding_dim = 100
+
+num_hidden = 64
+num_layers = 1
+
+learning_rate = 1e-3
+l2_rate = 100.0
+dropout_keep_prob = 0.4
+
+

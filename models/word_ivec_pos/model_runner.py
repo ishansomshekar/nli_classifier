@@ -7,6 +7,8 @@ os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 import tensorflow as tf
 from tensorflow.python.platform import gfile
 
+import json
+
 #our imports
 module_home = os.environ['NLI_PATH']
 sys.path.insert(0, module_home)
@@ -21,7 +23,7 @@ def train_model(train_data, dev_data):
         model.initialize_model(session)
         tf.get_variable_scope().reuse_variables()
         saver = tf.train.Saver()
-        writer = tf.summary.FileWriter('./graphs/word_pos', session.graph)
+        writer = tf.summary.FileWriter(model_config.graph_dir, session.graph)
         ckpt = tf.train.get_checkpoint_state(os.path.dirname(model_config.continue_checkpoint + '/checkpoint'))
         if ckpt and ckpt.model_checkpoint_path:
             saver.restore(session, ckpt.model_checkpoint_path)
@@ -59,17 +61,18 @@ def prep_data():
         build_data_partition(model_config.dev_paths, embedding_wrappers, True)
 
     train_data = load_data(model_config.train_paths, model_config.multi_input)
+    print(type(train_data['inputs']))
     dev_data = load_data(model_config.dev_paths, model_config.multi_input)
-    print("Train data inputs0 max: %d" % np.max(train_data['inputs'][:,0,:]))
-    print("Train data inputs1 max: %d" % np.max(train_data['inputs'][:,1,:]))
+    # print("Train data inputs0 max: %d" % np.max(train_data['inputs'][:,0,:]))
+    # print("Train data inputs1 max: %d" % np.max(train_data['inputs'][:,1,:]))
 
     return train_data, dev_data
 
 
 def main():
-    print "Running model, call with --fresh to clear preprocessed data from previous runs"
+    print("Running model, call with --fresh to clear preprocessed data from previous runs")
     if len(sys.argv) > 1 and sys.argv[1] == "--fresh":
-        print "Run with --fresh: clearing previously processed data"
+        print("Run with --fresh: clearing previously processed data")
         clear_data(model_config.processed_data_path)
     print("Prepping data")
     train_data, dev_data = prep_data()

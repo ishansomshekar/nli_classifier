@@ -79,7 +79,7 @@ class BaselinePredictor():
             tf.contrib.rnn.DropoutWrapper(
                 tf.contrib.rnn.GRUCell(self.num_hidden),
                 output_keep_prob=self.dropout_keep_prob_placeholder)
-                    for _ in xrange(self.num_layers)])
+                    for _ in range(self.num_layers)])
         _, state = tf.nn.dynamic_rnn(
                 gru_cell,
                 self.embeddings,
@@ -163,6 +163,7 @@ class BaselinePredictor():
         if final_accuracy > best_score:
             best_score = final_accuracy
             print("\nNew best score! Saving model in %s" % model_config.best_checkpoint)
+            print("best score:", final_accuracy)
             saver.save(sess, model_config.best_checkpoint + '/baseline_lstm')
         return final_accuracy, best_score
 

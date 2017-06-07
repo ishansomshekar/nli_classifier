@@ -14,8 +14,8 @@ from utils.data_utils import get_script_path
 # data
 
 processed_data_path = os.path.join(get_script_path(), 'processed/')
-best_checkpoint = os.path.join(processed_data_path, 'checkpoints/best')
-continue_checkpoint = os.path.join(processed_data_path, 'checkpoints/run1')
+# best_checkpoint = os.path.join(module_home, 'checkpoints/word_ivec_pos_best')
+# continue_checkpoint = os.path.join(module_home, 'checkpoints/word_ivec_pos')
 
 logs_path = os.path.join(processed_data_path, './tf_log')
 
@@ -59,15 +59,18 @@ log_frequency = 100
 num_epochs = 10
 batch_size = 64
 
-num_hidden = 512
+num_hidden = 256
 num_layers = 1
 word_embedding_dim = 100
 
-learning_rate = 1e-3
-l2_rate = 1e-3
-dropout_keep_prob = 0.5
+learning_rate = 1e-4
+l2_rate = 1e-4
+dropout_keep_prob = 0.6
 
-#
+model_all = 'word_ivec_pos_' + str(learning_rate) + '_l2_' + str(l2_rate) + '_drop_' + str(dropout_keep_prob) + '_layers_' + str(num_layers) + '_n_hidden_' + str(num_hidden) + '_dim_' + str(word_embedding_dim)
+best_checkpoint = os.path.join(module_home, 'checkpoints/' + model_all + '_best')
+continue_checkpoint = os.path.join(module_home, 'checkpoints/' + model_all)
+graph_dir = os.path.join(module_home, 'graphs/' + model_all)
 
 multi_input = True
 
@@ -84,7 +87,7 @@ def get_embedding_paths():
 def get_vocab_paths():
     return [word_vocab_path, ivec_vocab_path]
 
-embeddings_trainable = False
+embeddings_trainable = True
 
 def get_logger():
     logger = logging.getLogger("log_baseline")

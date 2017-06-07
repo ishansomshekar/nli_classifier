@@ -21,7 +21,7 @@ def train_model(train_data, dev_data):
     tf.get_variable_scope().reuse_variables()
     saver = tf.train.Saver()
     with tf.Session() as session:
-        writer = tf.summary.FileWriter('./graphs/baseline_lstm', session.graph)
+        writer = tf.summary.FileWriter(model_config.graph_dir, session.graph)
         ckpt = tf.train.get_checkpoint_state(os.path.dirname(model_config.continue_checkpoint + '/checkpoint'))
         if ckpt and ckpt.model_checkpoint_path:
             saver.restore(session, ckpt.model_checkpoint_path)
@@ -39,13 +39,14 @@ def prep_data():
     ensure_dir(model_config.continue_checkpoint)
     ensure_dir(model_config.processed_data_path)
 
-    embedding_wrapper = model_config.get_embedding_wrapper()
+    embedding_wrappers = model_config.get_embedding_wrappers()
+    embedding_wrapper = embedding_wrappers[0]
     embedding_wrapper.build_vocab(model_config.vocab_path)
     embedding_wrapper.process_embeddings(model_config.embeddings_path)
     if not gfile.Exists(model_config.train_paths['inputs_out']) or not gfile.Exists(model_config.dev_paths['inputs_out']):
         print('build data')
-        build_data_partition(model_config.train_paths, embedding_wrapper)
-        build_data_partition(model_config.dev_paths, embedding_wrapper)
+        build_data_partition(model_config.train_paths, embedding_wrappers)
+        build_data_partition(model_config.dev_paths, embedding_wrappers)
 
     train_data = load_data(model_config.train_paths)
     dev_data = load_data(model_config.dev_paths)
@@ -54,9 +55,9 @@ def prep_data():
 
 
 def main():
-    print "Running model, call with --fresh to clear preprocessed data from previous runs"
+    print("Running model, call with --fresh to clear preprocessed data from previous runs")
     if len(sys.argv) > 1 and sys.argv[1] == "--fresh":
-        print "Run with --fresh: clearing previously processed data"
+        print("Run with --fresh: clearing previously processed data")
         clear_data(model_config.processed_data_path)
     train_data, dev_data = prep_data()
     with tf.variable_scope('baseline_model'):

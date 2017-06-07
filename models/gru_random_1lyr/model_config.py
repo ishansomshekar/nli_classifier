@@ -12,8 +12,8 @@ from utils.data_utils import get_script_path
 # data
 processed_data_path = os.path.join(get_script_path(), 'processed/')
 
-best_checkpoint = os.path.join(processed_data_path, 'checkpoints/best')
-continue_checkpoint = os.path.join(processed_data_path, 'checkpoints/run')
+# best_checkpoint = os.path.join(processed_data_path, 'checkpoints/best')
+# continue_checkpoint = os.path.join(processed_data_path, 'checkpoints/run')
 
 logs_path = os.path.join(processed_data_path, './tf_log')
 
@@ -49,11 +49,21 @@ batch_size = 64
 num_hidden = 512
 num_layers = 1
 
-learning_rate = 1e-3
-l2_rate = 1e-4
-dropout_keep_prob = 0.5
+# learning_rate = 1e-4
+# l2_rate = 1e-4
+# dropout_keep_prob = 0.5
 
-#
+learning_rate = 2e-5
+l2_rate = 1e-4
+dropout_keep_prob = 0.6
+
+model_all = 'gru_random_1lyr_' + str(learning_rate) + '_l2_' + str(l2_rate) + '_drop_' + str(dropout_keep_prob)
+best_checkpoint = os.path.join(module_home, 'checkpoints/' + model_all + '_best')
+continue_checkpoint = os.path.join(module_home, 'checkpoints/' + model_all)
+graph_dir = os.path.join(module_home, 'graphs/' + model_all)
+
+# best_checkpoint = os.path.join(module_home, 'checkpoints/gru_random_1lyr_' + str(learning_rate) + '_l2_' + str(l2_rate) + '_drop_' + str(dropout_keep_prob) + '_best')
+# continue_checkpoint = os.path.join(module_home, 'checkpoints/gru_random_1lyr_' + str(learning_rate) + '_l2_' + str(l2_rate) + '_drop_' + str(dropout_keep_prob))
 
 def get_embedding_wrapper():
     #return CharLevelEmbeddingWrapper() # for char level NN
