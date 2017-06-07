@@ -78,9 +78,9 @@ class WordPOSPredictor():
 
 
     def add_embeddings(self, session):
-        self.word_embedding_data = load_embedding_data(model_config.word_embeddings_path).astype(float)
+        self.word_embedding_data = load_embedding_data(model_config.word_embeddings_path)
         # self.pos_embedding_data = load_embedding_data(model_config.pos_embeddings_path).astype(float)
-        self.ivec_embedding_data = load_embedding_data(model_config.ivec_embeddings_path).astype(float)
+        self.ivec_embedding_data = load_embedding_data(model_config.ivec_embeddings_path)
         
         word_embeddings = tf.Variable(tf.constant(0.0, shape=self.word_embedding_data.shape), name="word_embeddings", trainable=model_config.embeddings_trainable)
         self.word_embedding_placeholder = tf.placeholder(tf.float32, self.word_embedding_data.shape, name="word_embedding")
@@ -103,8 +103,8 @@ class WordPOSPredictor():
         # pos_embeddings = tf.cast(tf.reshape(pos_embeddings_lookup, (-1, pos_max_seq_len, pos_embedding_dim)), tf.float64)
 
 
-        ivec_embeddings = tf.Variable(tf.constant(0.0, shape=self.ivec_embedding_data.shape), name="ivec_embeddings", trainable=False)
-        self.ivec_embedding_placeholder = tf.placeholder(tf.float32, self.ivec_embedding_data.shape, name='ivec_embedding')
+        ivec_embeddings = tf.Variable(tf.constant(0, shape=self.ivec_embedding_data.shape), name="ivec_embeddings", trainable=False)
+        self.ivec_embedding_placeholder = tf.placeholder(tf.int32, self.ivec_embedding_data.shape, name='ivec_embedding')
         ivec_embedding_init = ivec_embeddings.assign(self.ivec_embedding_placeholder)
         ivec_embedding_dim = self.ivec_embedding_data.shape[1]
         ivec_max_seq_len = tf.shape(self.ivec_inputs_placeholder)[1]

@@ -252,7 +252,7 @@ def load_data(paths, multi_input=False):
            inp = pickle.load(open(p, 'rb'))
            all_inputs.append(np.array(inp))
 
-        final_inputs = np.asarray(all_inputs)
+        final_inputs = np.asarray(all_inputs, dtype=np.int32)
         final_inputs = np.swapaxes(final_inputs, 0, 1)
 
         data['inputs'] = final_inputs

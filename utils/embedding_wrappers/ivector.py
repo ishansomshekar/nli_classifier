@@ -6,6 +6,7 @@ import os
 import sys
 import pickle
 from os.path import join as pjoin
+import json
 
 from tensorflow.python.platform import gfile
 import numpy as np
@@ -24,7 +25,8 @@ class IvectorEmbeddingWrapper(object):
         self.num_tokens = 0
         self.unk = "UNK"
         self.pad = "<PAD>"
-        self.data_path = pjoin(module_home, 'data/ivectors/train/ivectors.json')
+        self.train_path = pjoin(module_home, 'data/ivectors/train/ivectors.json')
+        self.dev_path = pjoin(module_home, 'data/ivectors/dev/ivectors.json')
 
 
     def build_vocab(self, path):
@@ -35,9 +37,12 @@ class IvectorEmbeddingWrapper(object):
             idx = 0
             wordcounter = 0
             file_count = 0
-            fullDict = json.load(open(self.data_path))
-            vocab = {speaker_id: idx for speaker_id, idx in enumerate(fullDict.keys())}
+            trainDict = json.load(open(self.train_path))
+            devDict = json.load(open(self.dev_path))
+            self.fullDict = dict(trainDict, **devDict)
+            vocab = {int(speaker_id): idx for idx, speaker_id in enumerate(self.fullDict.keys())}
 
+            idx = len(vocab)
             vocab[self.unk] = idx
             idx += 1
             vocab[self.pad] = idx
@@ -53,8 +58,7 @@ class IvectorEmbeddingWrapper(object):
         :return:
         """
         if not gfile.Exists(embeddings_path):
-            fullDict = json.load(open(self.data_path))
-            embeddings = np.array(fullDict.values())
+            embeddings = np.array(self.fullDict.values())
             np.savez_compressed(embeddings_path, embedding=embeddings)
             self.embeddings = embeddings
 
