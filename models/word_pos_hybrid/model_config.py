@@ -59,16 +59,23 @@ word_embedding_dim = 100
 learning_rate = 2e-4
 l2_rate = 4e-3
 dropout_keep_prob = 0.5
+wrap = 'glove'
 
-#
+model_all = 'word_pos_hybrid' + str(learning_rate) + '_l2_' + str(l2_rate) + '_drop_' + str(dropout_keep_prob) + '_layers_' + str(num_layers) + '_n_hidden_' + str(num_hidden) + '_dim_' + str(word_embedding_dim) + '_' + wrap
+best_checkpoint = os.path.join(module_home, 'checkpoints/' + model_all + '_best')
+continue_checkpoint = os.path.join(module_home, 'checkpoints/' + model_all)
+graph_dir = os.path.join(module_home, 'graphs/' + model_all)
 
 multi_input = True
+make_confusion_matrix = True
+
 
 def get_embedding_wrappers():
     #return CharLevelEmbeddingWrapper() # for char level NN
     #return GloveEmbeddingWrapper() # for GloVe vector embeddings
     #return OneHotEmbeddingWrapper() # for one-hot word embeddings (warning: slow)
-    #return RandomEmbeddingWrapper() # for random initialized word embeddings
+    if wrap == 'glove':
+        return [GloveEmbeddingWrapper(word_embedding_dim), PosEmbeddingWrapper()]
     return [RandomEmbeddingWrapper(word_embedding_dim), PosEmbeddingWrapper()]
 
 def get_embedding_paths():

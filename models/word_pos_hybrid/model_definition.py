@@ -13,6 +13,7 @@ sys.path.insert(0, module_home)
 
 from utils.progbar import Progbar
 from utils.data_utils import *
+from utils.confusion_matrix import plot
 import model_config
 
 
@@ -56,7 +57,7 @@ class WordPOSPredictor():
         self.pos_inputs_placeholder = tf.placeholder(tf.int32, shape=(None, None))
         self.seq_lens_placeholder = tf.placeholder(tf.int32, shape=(None))
         self.labels_placeholder = tf.placeholder(tf.int32, shape=(None, self.num_classes))
-	self.dropout_keep_prob_placeholder = tf.placeholder(tf.float64)
+        self.dropout_keep_prob_placeholder = tf.placeholder(tf.float64)
 
 
     def create_feed_dict(self, inputs, lens, labels, keep_prob):
@@ -65,10 +66,10 @@ class WordPOSPredictor():
             self.pos_inputs_placeholder : inputs[:, 1, :],
             self.seq_lens_placeholder: lens,
             self.labels_placeholder : labels,
-	    self.dropout_keep_prob_placeholder : keep_prob,
+            self.dropout_keep_prob_placeholder : keep_prob,
             self.word_embedding_placeholder: self.word_embedding_data,
             self.pos_embedding_placeholder: self.pos_embedding_data,
-        }
+            }
         return feed_dict
 
 
@@ -106,12 +107,11 @@ class WordPOSPredictor():
 
 
     def add_prediction_op(self):
-    	gru_cell = tf.contrib.rnn.MultiRNNCell([
+        gru_cell = tf.contrib.rnn.MultiRNNCell([
                 tf.contrib.rnn.DropoutWrapper(
-    		tf.contrib.rnn.GRUCell(self.num_hidden),
-    		self.dropout_keep_prob_placeholder)
-                for _ in xrange(self.num_layers)])
-
+            tf.contrib.rnn.GRUCell(self.num_hidden),
+            self.dropout_keep_prob_placeholder)
+                for _ in range(self.num_layers)])
         _, state = tf.nn.dynamic_rnn(
                 gru_cell,
                 self.full_embeddings,
@@ -181,17 +181,29 @@ class WordPOSPredictor():
         return accuracy, best_score
 
     def eval_dev(self, sess, saver, best_score):
-        prog = Progbar(target=1)
-        batch = make_batches(self.dev_len, self.dev_data)[0]
-	    tf.get_variable_scope().reuse_variables()
-        feed = self.create_feed_dict(inputs=batch[0], lens=batch[1], labels=batch[2], keep_prob=1.0)
-        loss, accuracy = sess.run([self.loss, self.accuracy], feed_dict=feed)
-        prog.update(1, [("dev loss", loss), ("accuracy", accuracy)])
-        if accuracy > best_score:
-            best_score = accuracy
+        prog = Progbar(target=int(self.dev_len))
+        count = 0
+        total_accuracy = 0.0
+        batches = make_batches(1, self.dev_data)
+        all_preds = np.zeros((len(batches), ))
+        all_labels = np.zeros((len(batches), ))
+        for i, batch in enumerate(batches):
+            tf.get_variable_scope().reuse_variables()
+            feed = self.create_feed_dict(inputs=batch[0], lens=batch[1], labels=batch[2], keep_prob=1.0)
+            loss, accuracy, preds = sess.run([self.loss, self.accuracy, self.preds], feed_dict=feed)
+            all_preds[i] = np.argmax(preds)
+            all_labels[i] = np.argmax(batch[2])
+            prog.update(count + 1, [("dev loss", loss), ("dev accuracy", accuracy)])
+            total_accuracy += accuracy
+            count += 1
+        if model_config.make_confusion_matrix:
+            plot(all_labels, all_preds)
+        final_accuracy = total_accuracy / count
+        if final_accuracy > best_score:
+            best_score = final_accuracy
             print("\nNew best score! Saving model in %s" % model_config.best_checkpoint)
             saver.save(sess, model_config.best_checkpoint + '/baseline_lstm')
-        return accuracy, best_score
+        return final_accuracy, best_score
 
     def fit(self, sess, saver, writer, last_step):
         best_dev_score = 0.0

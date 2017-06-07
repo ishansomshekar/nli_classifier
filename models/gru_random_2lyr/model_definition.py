@@ -7,6 +7,10 @@ os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 import tensorflow as tf
 import tensorflow.contrib.layers as layers
 
+import numpy as np
+
+from utils.confusion_matrix import plot
+
 #our imports
 module_home = os.environ['NLI_PATH']
 sys.path.insert(0, module_home)
@@ -153,13 +157,21 @@ class BaselinePredictor():
         count = 0
         total_accuracy = 0.0
         batches = make_batches(1, self.dev_data)
-        for batch in batches:
+        all_preds = np.zeros((len(batches), ))
+        all_labels = np.zeros((len(batches), ))
+        for i, batch in enumerate(batches):
             tf.get_variable_scope().reuse_variables()
             feed = self.create_feed_dict(inputs=batch[0], lens=batch[1], labels=batch[2], dropout_prob=1.0)
-            loss, accuracy = sess.run([self.loss, self.accuracy], feed_dict=feed)
+            loss, accuracy, preds = sess.run([self.loss, self.accuracy, self.preds], feed_dict=feed)
+            all_preds[i] = np.argmax(preds)
+            all_labels[i] = np.argmax(batch[2])
             prog.update(count + 1, [("dev loss", loss), ("dev accuracy", accuracy)])
             total_accuracy += accuracy
             count += 1
+        print(all_labels.shape)
+        print(all_preds.shape)
+        if model_config.make_confusion_matrix:
+            plot(all_labels, all_preds)
         final_accuracy = total_accuracy / count
         if final_accuracy > best_score:
             best_score = final_accuracy
